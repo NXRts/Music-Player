@@ -1,0 +1,54 @@
+import React from 'react';
+
+const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
+    return (
+        <div className="flex flex-col">
+            {/* Header Row */}
+            <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider sticky top-16 bg-bg-primary z-0">
+                <div className="w-8 text-center">#</div>
+                <div>Title</div>
+                <div>Artist</div>
+                <div className="text-right pr-4">🕒</div>
+            </div>
+
+            <div className="flex flex-col mt-2">
+                {songs.map((song, index) => {
+                    const isCurrent = currentSong?.id === song.id;
+
+                    return (
+                        <div
+                            key={song.id}
+                            onClick={() => onSelect(song)}
+                            className={`grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
+                        >
+                            <div className="w-8 flex items-center justify-center relative">
+                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
+                                <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-white`}>▶</span>
+                                {isCurrent && isPlaying && (
+                                    <img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" className="absolute w-4 h-4" alt="playing" />
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm" />
+                                <div className="flex flex-col truncate">
+                                    <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-white'}`}>{song.title}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center truncate text-sm">
+                                {song.artist}
+                            </div>
+
+                            <div className="flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
+                                {song.duration}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+export default SongList;
