@@ -1,6 +1,6 @@
 import React from 'react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -30,18 +30,42 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             {/* Center: Controls */}
             <div className="flex flex-col items-center gap-1 w-auto md:w-1/3 absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none bottom-20 md:bottom-auto">
                 <div className="flex items-center gap-6">
-                    <button className="text-text-secondary hover:text-white text-lg">🔀</button>
-                    <button className="text-text-secondary hover:text-white text-lg">⏮</button>
+                    <button
+                        className={`text-lg hover:text-white transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
+                        onClick={onToggleShuffle}
+                        title={isShuffle ? "Disable Shuffle" : "Enable Shuffle"}
+                    >
+                        🔀
+                    </button>
+                    <button
+                        className="text-text-secondary hover:text-white text-lg"
+                        onClick={onSkipPrev}
+                        title="Previous Song"
+                    >
+                        ⏮
+                    </button>
 
                     <button
                         className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-black hover:scale-105 transition shadow-lg"
                         onClick={onPlayPause}
+                        title={isPlaying ? "Pause" : "Play"}
                     >
                         {isPlaying ? '⏸' : '▶'}
                     </button>
 
-                    <button className="text-text-secondary hover:text-white text-lg">⏭</button>
-                    <button className="text-text-secondary hover:text-white text-lg">🔁</button>
+                    <button
+                        className="text-text-secondary hover:text-white text-lg"
+                        onClick={onSkipNext}
+                        title="Next Song"
+                    >
+                        ⏭
+                    </button>
+                    <button
+                        className="text-text-secondary hover:text-white text-lg"
+                        title="Repeat (Not Implemented)"
+                    >
+                        🔁
+                    </button>
                 </div>
 
                 <div className="w-full flex items-center gap-2 text-xs text-text-secondary">

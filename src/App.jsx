@@ -20,6 +20,7 @@ function App() {
 
   const [volume, setVolume] = useState(0.5);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -73,13 +74,52 @@ function App() {
   // Placeholder for audio element
   const audioRef = useRef(new Audio());
 
+  const skipNext = () => {
+    setSongs(prevSongs => {
+      if (prevSongs.length === 0) return prevSongs;
+
+      let nextIndex;
+      const currentIndex = prevSongs.findIndex(s => s.id === currentSong?.id);
+
+      if (isShuffle) {
+        // Pick random index different from current
+        do {
+          nextIndex = Math.floor(Math.random() * prevSongs.length);
+        } while (prevSongs.length > 1 && nextIndex === currentIndex);
+      } else {
+        // Sequential
+        nextIndex = (currentIndex + 1) % prevSongs.length;
+      }
+
+      const nextSong = prevSongs[nextIndex];
+      handleSongSelect(nextSong);
+      return prevSongs;
+    });
+  };
+
+  const skipPrev = () => {
+    setSongs(prevSongs => {
+      if (prevSongs.length === 0) return prevSongs;
+
+      const currentIndex = prevSongs.findIndex(s => s.id === currentSong?.id);
+      const prevIndex = (currentIndex - 1 + prevSongs.length) % prevSongs.length;
+
+      const prevSong = prevSongs[prevIndex];
+      handleSongSelect(prevSong);
+      return prevSongs;
+    });
+  };
+
   // Handle audio events
   useEffect(() => {
     const audio = audioRef.current;
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const onEnded = () => setIsPlaying(false);
+    const onEnded = () => {
+      setIsPlaying(false);
+      skipNext(); // Auto-play next song
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
@@ -90,7 +130,7 @@ function App() {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', onEnded);
     }
-  }, []);
+  }, [currentSong, isShuffle]); // Re-bind when shuffle/currentSong changes to ensure closure has latest state (or use ref for stable callbacks if optimizing)
 
   // Sync isPlaying state with audio Play/Pause
   useEffect(() => {
@@ -203,6 +243,10 @@ function App() {
             currentTime={currentTime}
             duration={duration}
             onSeek={__handleSeek}
+            onSkipNext={skipNext}
+            onSkipPrev={skipPrev}
+            isShuffle={isShuffle}
+            onToggleShuffle={() => setIsShuffle(!isShuffle)}
           />
         </div>
       </div>
