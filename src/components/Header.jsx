@@ -1,15 +1,23 @@
-import React from 'react';
+import { Menu } from 'lucide-react';
 
-const Header = () => {
+const Header = ({ onOpenMobileMenu }) => {
     return (
         <header className="h-16 flex items-center justify-between px-6 bg-transparent sticky top-0 z-10 transition-colors duration-200">
-            <div className="flex gap-4">
-                <button className="w-8 h-8 rounded-full bg-black bg-opacity-70 flex items-center justify-center text-white cursor-not-allowed opacity-50">
-                    ❮
+            <div className="flex gap-4 items-center">
+                <button
+                    className="md:hidden text-white mr-2"
+                    onClick={onOpenMobileMenu}
+                >
+                    <Menu size={24} />
                 </button>
-                <button className="w-8 h-8 rounded-full bg-black bg-opacity-70 flex items-center justify-center text-white cursor-not-allowed opacity-50">
-                    ❯
-                </button>
+                <div className="hidden md:flex gap-4">
+                    <button className="w-8 h-8 rounded-full bg-black bg-opacity-70 flex items-center justify-center text-white cursor-not-allowed opacity-50">
+                        ❮
+                    </button>
+                    <button className="w-8 h-8 rounded-full bg-black bg-opacity-70 flex items-center justify-center text-white cursor-not-allowed opacity-50">
+                        ❯
+                    </button>
+                </div>
             </div>
 
             <div className="flex items-center gap-4">
