@@ -1,4 +1,5 @@
 import React from 'react';
+import { Music } from 'lucide-react';
 
 const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
     return (
@@ -30,7 +31,13 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
                             </div>
 
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm" />
+                                {song.cover && song.cover.includes('placehold.co') ? (
+                                    <div className="w-10 h-10 min-w-10 min-h-10 rounded shadow-sm bg-bg-highlight flex items-center justify-center text-text-secondary">
+                                        <Music size={20} />
+                                    </div>
+                                ) : (
+                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm" />
+                                )}
                                 <div className="flex flex-col truncate">
                                     <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-white'}`}>{song.title}</span>
                                 </div>

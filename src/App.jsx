@@ -75,39 +75,33 @@ function App() {
   const audioRef = useRef(new Audio());
 
   const skipNext = () => {
-    setSongs(prevSongs => {
-      if (prevSongs.length === 0) return prevSongs;
+    if (songs.length === 0) return;
 
-      let nextIndex;
-      const currentIndex = prevSongs.findIndex(s => s.id === currentSong?.id);
+    let nextIndex;
+    const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
 
-      if (isShuffle) {
-        // Pick random index different from current
-        do {
-          nextIndex = Math.floor(Math.random() * prevSongs.length);
-        } while (prevSongs.length > 1 && nextIndex === currentIndex);
-      } else {
-        // Sequential
-        nextIndex = (currentIndex + 1) % prevSongs.length;
-      }
+    if (isShuffle) {
+      // Pick random index different from current
+      do {
+        nextIndex = Math.floor(Math.random() * songs.length);
+      } while (songs.length > 1 && nextIndex === currentIndex);
+    } else {
+      // Sequential
+      nextIndex = (currentIndex + 1) % songs.length;
+    }
 
-      const nextSong = prevSongs[nextIndex];
-      handleSongSelect(nextSong);
-      return prevSongs;
-    });
+    const nextSong = songs[nextIndex];
+    handleSongSelect(nextSong);
   };
 
   const skipPrev = () => {
-    setSongs(prevSongs => {
-      if (prevSongs.length === 0) return prevSongs;
+    if (songs.length === 0) return;
 
-      const currentIndex = prevSongs.findIndex(s => s.id === currentSong?.id);
-      const prevIndex = (currentIndex - 1 + prevSongs.length) % prevSongs.length;
+    const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
+    const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
 
-      const prevSong = prevSongs[prevIndex];
-      handleSongSelect(prevSong);
-      return prevSongs;
-    });
+    const prevSong = songs[prevIndex];
+    handleSongSelect(prevSong);
   };
 
   // Handle audio events
@@ -117,8 +111,10 @@ function App() {
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
     const onEnded = () => {
-      setIsPlaying(false);
-      skipNext(); // Auto-play next song
+      // Don't auto-stop, just go next. 
+      // If we seek to next, handleSongSelect sets isPlaying=true.
+      // But if we just call skipNext, it updates currentSong.
+      skipNext();
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -130,16 +126,26 @@ function App() {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', onEnded);
     }
-  }, [currentSong, isShuffle]); // Re-bind when shuffle/currentSong changes to ensure closure has latest state (or use ref for stable callbacks if optimizing)
+  }, [currentSong, isShuffle, songs]); // Added songs dependency for skipNext closure
 
-  // Sync isPlaying state with audio Play/Pause
+  // Sync isPlaying state with audio Play/Pause AND auto-play on song change
   useEffect(() => {
-    if (isPlaying) {
-      audioRef.current.play().catch(e => console.error("Playback failed:", e));
-    } else {
+    if (isPlaying && currentSong) { // Ensure there is a song
+      // Small timeout to ensure DOM/Audio element is ready if needed, 
+      // but usually direct play works if src is set.
+      // We wrap in a promise handling to avoid the "play() request was interrupted" error
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.error("Playback failed or interrupted:", e);
+          // If user interaction is required, we might set isPlaying to false
+          // setIsPlaying(false); 
+        });
+      }
+    } else if (!isPlaying) {
       audioRef.current.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentSong]); // Depend on currentSong to trigger play when song changes
 
   // Set volume
   useEffect(() => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Music, Heart } from 'lucide-react';
 
 const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle }) => {
 
@@ -19,30 +20,39 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
         <div className="w-full flex items-center justify-between">
             {/* Left: Song Info */}
             <div className="flex items-center gap-4 w-full md:w-1/3">
-                <img src={currentSong.cover} alt="Cover" className="w-14 h-14 rounded shadow-md" />
+                {currentSong.cover && currentSong.cover.includes('placehold.co') ? (
+                    <div className="w-14 h-14 rounded shadow-md bg-bg-highlight flex items-center justify-center text-text-secondary">
+                        <Music size={24} />
+                    </div>
+                ) : (
+                    <img src={currentSong.cover} alt="Cover" className="w-14 h-14 rounded shadow-md" />
+                )}
+
                 <div className="flex flex-col justify-center">
                     <div className="text-sm text-white hover:underline cursor-pointer font-medium truncate max-w-[120px] md:max-w-none">{currentSong.title}</div>
                     <div className="text-xs text-text-secondary hover:underline cursor-pointer truncate max-w-[120px] md:max-w-none">{currentSong.artist}</div>
                 </div>
-                <button className="text-text-secondary hover:text-white ml-2 hidden md:block">♡</button>
+                <button className="text-text-secondary hover:text-accent hover:fill-accent transition ml-2 hidden md:block" title="Save to Library">
+                    <Heart size={20} />
+                </button>
             </div>
 
             {/* Center: Controls */}
             <div className="flex flex-col items-center gap-1 w-auto md:w-1/3 absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none bottom-20 md:bottom-auto">
                 <div className="flex items-center gap-6">
                     <button
-                        className={`text-lg hover:text-white transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
+                        className={`hover:text-white transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
                         onClick={onToggleShuffle}
                         title={isShuffle ? "Disable Shuffle" : "Enable Shuffle"}
                     >
-                        🔀
+                        <Shuffle size={20} />
                     </button>
                     <button
-                        className="text-text-secondary hover:text-white text-lg"
+                        className="text-text-secondary hover:text-white"
                         onClick={onSkipPrev}
                         title="Previous Song"
                     >
-                        ⏮
+                        <SkipBack size={24} fill="currentColor" />
                     </button>
 
                     <button
@@ -50,21 +60,21 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         onClick={onPlayPause}
                         title={isPlaying ? "Pause" : "Play"}
                     >
-                        {isPlaying ? '⏸' : '▶'}
+                        {isPlaying ? <Pause size={20} fill="black" /> : <Play size={20} fill="black" className="ml-0.5" />}
                     </button>
 
                     <button
-                        className="text-text-secondary hover:text-white text-lg"
+                        className="text-text-secondary hover:text-white"
                         onClick={onSkipNext}
                         title="Next Song"
                     >
-                        ⏭
+                        <SkipForward size={24} fill="currentColor" />
                     </button>
                     <button
-                        className="text-text-secondary hover:text-white text-lg"
+                        className="text-text-secondary hover:text-white"
                         title="Repeat (Not Implemented)"
                     >
-                        🔁
+                        <Repeat size={20} />
                     </button>
                 </div>
 
@@ -86,10 +96,13 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
 
             {/* Right: Volume & Extra */}
             <div className="w-1/3 hidden md:flex items-center justify-end gap-3 text-text-secondary">
-                <button className="hover:text-white">🎤</button>
-                <button className="hover:text-white">🖥</button>
-                <div className="w-24 h-1 bg-bg-highlight rounded-full group cursor-pointer">
-                    <div className="h-full w-2/3 bg-white group-hover:bg-accent"></div>
+                <button className="hover:text-white" title="Lyrics"><Mic2 size={20} /></button>
+                <button className="hover:text-white" title="Queue"><ListMusic size={20} /></button>
+                <div className="flex items-center gap-2 group">
+                    <Volume2 size={20} />
+                    <div className="w-24 h-1 bg-bg-highlight rounded-full cursor-pointer relative">
+                        <div className="h-full w-2/3 bg-white group-hover:bg-accent rounded-full"></div>
+                    </div>
                 </div>
             </div>
         </div>
