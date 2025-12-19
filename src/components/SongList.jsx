@@ -5,7 +5,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
     return (
         <div className="flex flex-col">
             {/* Header Row */}
-            <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider sticky top-16 bg-bg-primary z-0">
+            <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary">
                 <div className="w-8 text-center">#</div>
                 <div>Title</div>
                 <div>Artist</div>
