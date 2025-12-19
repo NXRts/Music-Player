@@ -6,7 +6,7 @@ import Header from './components/Header';
 import Search from './components/Search';
 import YourLibrary from './components/Library';
 
-import { Upload } from 'lucide-react';
+import { Upload, Music } from 'lucide-react';
 import { saveSong, getAllSongs } from './services/db';
 
 function App() {
@@ -39,13 +39,25 @@ function App() {
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
+    const existingTitles = new Set(songs.map(s => s.title));
+    let addedCount = 0;
 
     // Process each file
     for (const file of files) {
+      const title = file.name.replace(/\.[^/.]+$/, "");
+
+      if (existingTitles.has(title)) {
+        console.warn(`Duplicate song skipped: ${title}`);
+        continue;
+      }
+
+      // Add to set to prevent duplicates within the same batch
+      existingTitles.add(title);
+
       const id = Date.now() + Math.random();
       const newSong = {
         id,
-        title: file.name.replace(/\.[^/.]+$/, ""),
+        title,
         artist: 'Local Artist',
         duration: 'Unknown',
         cover: 'https://placehold.co/300x300/333333/ffffff?text=MP3',
@@ -63,6 +75,11 @@ function App() {
       };
 
       setSongs(prev => [...prev, songForState]);
+      addedCount++;
+    }
+
+    if (addedCount < files.length) {
+      alert(`Uploaded ${addedCount} songs. ${files.length - addedCount} duplicates were skipped.`);
     }
   };
 
@@ -221,7 +238,13 @@ function App() {
                   {/* Featured Cards / "Jump Back In" */}
                   {songs.slice(0, 3).map(song => (
                     <div key={song.id} className="flex items-center bg-bg-highlight bg-opacity-50 hover:bg-opacity-100 transition rounded-md overflow-hidden cursor-pointer group" onClick={() => handleSongSelect(song)}>
-                      <img src={song.cover} alt={song.title} className="w-20 h-20 object-cover shadow-lg" />
+                      {song.cover && song.cover.includes('placehold.co') ? (
+                        <div className="w-20 h-20 min-w-20 min-h-20 bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
+                          <Music size={32} />
+                        </div>
+                      ) : (
+                        <img src={song.cover} alt={song.title} className="w-20 h-20 object-cover shadow-lg" />
+                      )}
                       <div className="p-4 flex-1 font-bold truncate">{song.title}</div>
                       <div className="mr-4 opacity-0 group-hover:opacity-100 transition shadow-xl bg-accent rounded-full p-3 flex items-center justify-center">
                         <span className="text-black">▶</span>
