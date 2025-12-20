@@ -1,7 +1,7 @@
 import React from 'react';
 import { Music, MoreHorizontal } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll }) => {
     return (
         <div className="flex flex-col">
             {/* Header Row */}
@@ -10,7 +10,18 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete }) => {
                 <div>Title</div>
                 <div>Artist</div>
                 <div className="text-right pr-4">Duration</div>
-                <div className="w-8"></div>
+                <div className="w-8 flex items-center justify-center">
+                    <button
+                        className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClearAll && onClearAll();
+                        }}
+                        title="Clear All Songs"
+                    >
+                        <MoreHorizontal size={20} />
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col mt-2">

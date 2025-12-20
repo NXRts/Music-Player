@@ -7,7 +7,7 @@ import Search from './components/Search';
 import YourLibrary from './components/Library';
 
 import { Upload, Music } from 'lucide-react';
-import { saveSong, getAllSongs, deleteSong } from './services/db';
+import { saveSong, getAllSongs, deleteSong, clearAllSongs } from './services/db';
 
 function App() {
   const [token, setTokenState] = useState(null); // Keep for compatibility if needed, but unused now
@@ -139,6 +139,30 @@ function App() {
       } catch (error) {
         console.error("Failed to delete song:", error);
         alert("Failed to delete song");
+      }
+    }
+  };
+
+  const handleClearAllSongs = async () => {
+    if (songs.length === 0) return;
+
+    if (window.confirm("Are you sure you want to delete ALL songs? This cannot be undone.")) {
+      try {
+        await clearAllSongs();
+
+        // Revoke all URLs
+        songs.forEach(song => {
+          if (song.src) URL.revokeObjectURL(song.src);
+        });
+
+        setSongs([]);
+        setCurrentSong(null);
+        setIsPlaying(false);
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      } catch (error) {
+        console.error("Failed to clear library:", error);
+        alert("Failed to clear library");
       }
     }
   };
@@ -314,7 +338,14 @@ function App() {
                 </div>
 
                 <h3 className="text-xl font-bold mb-4">Recommended for you</h3>
-                <SongList songs={songs} currentSong={currentSong} onSelect={handleSongSelect} isPlaying={isPlaying} onDelete={handleDeleteSong} />
+                <SongList
+                  songs={songs}
+                  currentSong={currentSong}
+                  onSelect={handleSongSelect}
+                  isPlaying={isPlaying}
+                  onDelete={handleDeleteSong}
+                  onClearAll={handleClearAllSongs}
+                />
               </>
             )}
 
