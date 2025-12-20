@@ -1,15 +1,16 @@
 import React from 'react';
-import { Music } from 'lucide-react';
+import { Music, MoreHorizontal } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete }) => {
     return (
         <div className="flex flex-col">
             {/* Header Row */}
-            <div className="grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary">
                 <div className="w-8 text-center">#</div>
                 <div>Title</div>
                 <div>Artist</div>
-                <div className="text-right pr-4">🕒</div>
+                <div className="text-right pr-4">Duration</div>
+                <div className="w-8"></div>
             </div>
 
             <div className="flex flex-col mt-2">
@@ -20,7 +21,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
                         <div
                             key={song.id}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_1fr_auto] gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
+                            className={`grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
                         >
                             <div className="w-8 flex items-center justify-center relative">
                                 <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
@@ -49,6 +50,19 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying }) => {
 
                             <div className="flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
                                 {song.duration}
+                            </div>
+
+                            <div className="flex items-center justify-center">
+                                <button
+                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition opacity-0 group-hover:opacity-100"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete && onDelete(song.id);
+                                    }}
+                                    title="Delete Song"
+                                >
+                                    <MoreHorizontal size={20} />
+                                </button>
                             </div>
                         </div>
                     );

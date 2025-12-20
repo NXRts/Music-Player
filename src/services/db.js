@@ -42,3 +42,15 @@ export const getAllSongs = async () => {
         request.onerror = (event) => reject(event.target.error);
     });
 };
+
+export const deleteSong = async (id) => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(id);
+
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => reject(event.target.error);
+    });
+};

@@ -7,7 +7,7 @@ import Search from './components/Search';
 import YourLibrary from './components/Library';
 
 import { Upload, Music } from 'lucide-react';
-import { saveSong, getAllSongs } from './services/db';
+import { saveSong, getAllSongs, deleteSong } from './services/db';
 
 function App() {
   const [token, setTokenState] = useState(null); // Keep for compatibility if needed, but unused now
@@ -37,6 +37,32 @@ function App() {
     loadSongs();
   }, []);
 
+  // Helper to format duration
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  const getAudioDuration = (file) => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const objectUrl = URL.createObjectURL(file);
+      audio.src = objectUrl;
+
+      audio.onloadedmetadata = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(audio.duration);
+      };
+
+      audio.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(0);
+      };
+    });
+  };
+
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
     const existingTitles = new Set(songs.map(s => s.title));
@@ -54,12 +80,16 @@ function App() {
       // Add to set to prevent duplicates within the same batch
       existingTitles.add(title);
 
+      // Get Duration
+      const durationSeconds = await getAudioDuration(file);
+      const formattedDuration = formatDuration(durationSeconds);
+
       const id = Date.now() + Math.random();
       const newSong = {
         id,
         title,
         artist: 'Local Artist',
-        duration: 'Unknown',
+        duration: formattedDuration,
         cover: 'https://placehold.co/300x300/333333/ffffff?text=MP3',
         file: file, // Store actual blob in DB
         createdAt: Date.now()
@@ -80,6 +110,36 @@ function App() {
 
     if (addedCount < files.length) {
       alert(`Uploaded ${addedCount} songs. ${files.length - addedCount} duplicates were skipped.`);
+    }
+  };
+
+  const handleDeleteSong = async (songId) => {
+    // Find song title for confirmation
+    const song = songs.find(s => s.id === songId);
+    if (!song) return;
+
+    if (window.confirm(`Are you sure you want to delete "${song.title}"?`)) {
+      try {
+        await deleteSong(songId);
+
+        // Revoke URL to free memory
+        if (song.src) {
+          URL.revokeObjectURL(song.src);
+        }
+
+        setSongs(prev => prev.filter(s => s.id !== songId));
+
+        // If deleted song was playing, stop playback
+        if (currentSong?.id === songId) {
+          setCurrentSong(null);
+          setIsPlaying(false);
+          audioRef.current.pause();
+          audioRef.current.src = "";
+        }
+      } catch (error) {
+        console.error("Failed to delete song:", error);
+        alert("Failed to delete song");
+      }
     }
   };
 
@@ -254,7 +314,7 @@ function App() {
                 </div>
 
                 <h3 className="text-xl font-bold mb-4">Recommended for you</h3>
-                <SongList songs={songs} currentSong={currentSong} onSelect={handleSongSelect} isPlaying={isPlaying} />
+                <SongList songs={songs} currentSong={currentSong} onSelect={handleSongSelect} isPlaying={isPlaying} onDelete={handleDeleteSong} />
               </>
             )}
 
