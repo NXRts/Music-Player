@@ -38,7 +38,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             </div>
 
             {/* Center: Controls */}
-            <div className="flex flex-col items-center gap-1 w-auto md:w-1/3 absolute left-1/2 transform -translate-x-1/2 md:static md:transform-none bottom-20 md:bottom-auto">
+            <div className="flex flex-col items-center gap-1 w-full md:w-1/3 max-w-[400px]">
                 <div className="flex items-center gap-6">
                     <button
                         className={`hover:text-white transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
