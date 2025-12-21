@@ -1,7 +1,8 @@
-import React from 'react';
-import { Music, MoreHorizontal } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll }) => {
+import React from 'react';
+import { Music, MoreHorizontal, ListPlus } from 'lucide-react';
+
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist }) => {
     return (
         <div className="flex flex-col">
             {/* Header Row */}
@@ -32,10 +33,10 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                         <div
                             key={song.id}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
+                            className={`grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
                         >
                             <div className="w-8 flex items-center justify-center relative">
-                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
+                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'} `}>{isCurrent && isPlaying ? '' : index + 1}</span>
                                 <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-white`}>▶</span>
                                 {isCurrent && isPlaying && (
                                     <img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" className="absolute w-4 h-4" alt="playing" />
@@ -63,12 +64,30 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                                 {song.duration}
                             </div>
 
-                            <div className="flex items-center justify-center">
+                            <div
+                                className="flex items-center justify-center gap-1 relative z-50 cursor-default"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                }}
+                            >
                                 <button
-                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition opacity-0 group-hover:opacity-100"
+                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        onDelete && onDelete(song.id);
+                                        onAddToPlaylist && onAddToPlaylist(song.id);
+                                    }}
+                                    title="Add to Playlist"
+                                >
+                                    <ListPlus size={20} />
+                                </button>
+                                <button
+                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onDelete) {
+                                            onDelete(song.id);
+                                        }
                                     }}
                                     title="Delete Song"
                                 >

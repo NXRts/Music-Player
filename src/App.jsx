@@ -6,8 +6,8 @@ import Header from './components/Header';
 import Search from './components/Search';
 import YourLibrary from './components/Library';
 
-import { Upload, Music } from 'lucide-react';
-import { saveSong, getAllSongs, deleteSong, clearAllSongs } from './services/db';
+import { Upload, Music, ArrowLeft } from 'lucide-react';
+import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
 function App() {
@@ -16,6 +16,9 @@ function App() {
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [songs, setSongs] = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [activePlaylist, setActivePlaylist] = useState(null);
+
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -27,18 +30,82 @@ function App() {
 
   const fileInputRef = useRef(null);
 
-  // Load songs from DB on mount
+  // Load songs & playlists from DB on mount
   useEffect(() => {
-    const loadSongs = async () => {
+    const loadData = async () => {
+      // Load Songs
       const savedSongs = await getAllSongs();
       const songsWithUrls = savedSongs.map(song => ({
         ...song,
         src: URL.createObjectURL(song.file) // Create fresh URL for blob                                
       }));
       setSongs(songsWithUrls);
+
+      // Load Playlists
+      const savedPlaylists = await getAllPlaylists();
+      setPlaylists(savedPlaylists);
     };
-    loadSongs();
+    loadData();
   }, []);
+
+  const handleCreatePlaylist = async () => {
+    const name = prompt("Enter playlist name:");
+    if (!name) return;
+
+    const newPlaylist = {
+      id: Date.now(),
+      name,
+      songIds: [],
+      createdAt: Date.now()
+    };
+
+    await savePlaylist(newPlaylist);
+    setPlaylists(prev => [...prev, newPlaylist]);
+  };
+
+  const handleDeletePlaylist = async (id) => {
+    await deletePlaylist(id);
+    setPlaylists(prev => prev.filter(p => p.id !== id));
+    if (activePlaylist?.id === id) {
+      setActivePlaylist(null);
+      setCurrentView('library');
+    }
+  };
+
+  const handleSelectPlaylist = (playlist) => {
+    setActivePlaylist(playlist);
+    setCurrentView('playlist-detail');
+  };
+
+  const handleAddToPlaylist = async (songId) => {
+    if (playlists.length === 0) {
+      alert("Create a playlist first!");
+      return;
+    }
+
+    const playlistName = prompt(`Enter playlist name to add to:\n${playlists.map(p => p.name).join(', ')}`);
+    if (!playlistName) return;
+
+    const playlist = playlists.find(p => p.name.toLowerCase() === playlistName.toLowerCase());
+    if (!playlist) {
+      alert("Playlist not found");
+      return;
+    }
+
+    if (playlist.songIds.includes(songId)) {
+      alert("Song already in playlist");
+      return;
+    }
+
+    const updatedPlaylist = {
+      ...playlist,
+      songIds: [...playlist.songIds, songId]
+    };
+
+    await savePlaylist(updatedPlaylist);
+    setPlaylists(prev => prev.map(p => p.id === playlist.id ? updatedPlaylist : p));
+    alert(`Added to ${playlist.name}`);
+  };
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
@@ -87,15 +154,34 @@ function App() {
       addedCount++;
     }
 
+
+
     if (addedCount < files.length) {
       alert(`Uploaded ${addedCount} songs. ${files.length - addedCount} duplicates were skipped.`);
     }
   };
 
+  const handleRemoveFromPlaylist = async (songId) => {
+    if (!activePlaylist) return;
+
+    const updatedPlaylist = {
+      ...activePlaylist,
+      songIds: activePlaylist.songIds.filter(id => id !== songId)
+    };
+
+    await savePlaylist(updatedPlaylist);
+    setPlaylists(prev => prev.map(p => p.id === activePlaylist.id ? updatedPlaylist : p));
+    setActivePlaylist(updatedPlaylist);
+  };
+
   const handleDeleteSong = async (songId) => {
     // Find song title for confirmation
-    const song = songs.find(s => s.id === songId);
-    if (!song) return;
+    const song = songs.find(s => s.id == songId); // Loosen equality check
+    if (!song) {
+      console.error("Song not found for deletion:", songId);
+      alert("Error: Song not found in library.");
+      return;
+    }
 
     if (window.confirm(`Are you sure you want to delete "${song.title}"?`)) {
       try {
@@ -344,12 +430,47 @@ function App() {
                   isPlaying={isPlaying}
                   onDelete={handleDeleteSong}
                   onClearAll={handleClearAllSongs}
+                  onAddToPlaylist={handleAddToPlaylist}
                 />
               </>
             )}
 
             {currentView === 'search' && <Search songs={songs} onPlay={handleSongSelect} />}
-            {currentView === 'library' && <YourLibrary />}
+
+            {currentView === 'library' && (
+              <YourLibrary
+                playlists={playlists}
+                onCreatePlaylist={handleCreatePlaylist}
+                onSelectPlaylist={handleSelectPlaylist}
+                onDeletePlaylist={handleDeletePlaylist}
+              />
+            )}
+
+            {currentView === 'playlist-detail' && activePlaylist && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <button onClick={() => setCurrentView('library')} className="hover:text-white text-text-secondary">
+                    <ArrowLeft size={24} />
+                  </button>
+                  <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg">
+                    <Music size={32} />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold">{activePlaylist.name}</h2>
+                    <p className="text-sm text-text-secondary">{activePlaylist.songIds.length} songs</p>
+                  </div>
+                </div>
+
+                <SongList
+                  songs={songs.filter(s => activePlaylist.songIds.includes(s.id))}
+                  currentSong={currentSong}
+                  onSelect={handleSongSelect}
+                  isPlaying={isPlaying}
+                  onDelete={handleRemoveFromPlaylist}
+                  onAddToPlaylist={handleAddToPlaylist}
+                />
+              </div>
+            )}
           </>
         </main>
 
