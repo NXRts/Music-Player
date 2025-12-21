@@ -8,6 +8,7 @@ import YourLibrary from './components/Library';
 
 import { Upload, Music } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs } from './services/db';
+import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
 function App() {
   const [token, setTokenState] = useState(null); // Keep for compatibility if needed, but unused now
@@ -39,32 +40,6 @@ function App() {
     loadSongs();
   }, []);
 
-  // Helper to format duration
-  const formatDuration = (seconds) => {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
-
-  const getAudioDuration = (file) => {
-    return new Promise((resolve) => {
-      const audio = new Audio();
-      const objectUrl = URL.createObjectURL(file);
-      audio.src = objectUrl;
-
-      audio.onloadedmetadata = () => {
-        URL.revokeObjectURL(objectUrl);
-        resolve(audio.duration);
-      };
-
-      audio.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        resolve(0);
-      };
-    });
-  };
-
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
     const existingTitles = new Set(songs.map(s => s.title));
@@ -72,27 +47,29 @@ function App() {
 
     // Process each file
     for (const file of files) {
-      const title = file.name.replace(/\.[^/.]+$/, "");
+      // Get Duration & Metadata
+      const durationSeconds = await getAudioDuration(file);
+      const formattedDuration = formatDuration(durationSeconds);
+      const metadata = await getSongMetadata(file);
 
-      if (existingTitles.has(title)) {
-        console.warn(`Duplicate song skipped: ${title}`);
+      // Check duplicates using metadata title or filename
+      const titleToCheck = metadata.title || file.name.replace(/\.[^/.]+$/, "");
+
+      if (existingTitles.has(titleToCheck)) {
+        console.warn(`Duplicate song skipped: ${titleToCheck}`);
         continue;
       }
 
       // Add to set to prevent duplicates within the same batch
-      existingTitles.add(title);
-
-      // Get Duration
-      const durationSeconds = await getAudioDuration(file);
-      const formattedDuration = formatDuration(durationSeconds);
+      existingTitles.add(titleToCheck);
 
       const id = Date.now() + Math.random();
       const newSong = {
         id,
-        title,
-        artist: 'Local Artist',
+        title: metadata.title || titleToCheck,
+        artist: metadata.artist || 'Unknown Artist',
         duration: formattedDuration,
-        cover: 'https://placehold.co/300x300/333333/ffffff?text=MP3',
+        cover: metadata.cover || 'https://placehold.co/300x300/333333/ffffff?text=MP3',
         file: file, // Store actual blob in DB
         createdAt: Date.now()
       };
