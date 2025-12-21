@@ -19,6 +19,8 @@ function App() {
   const [duration, setDuration] = useState(0);
 
   const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
+  const prevVolumeRef = useRef(0.5);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
 
@@ -30,7 +32,7 @@ function App() {
       const savedSongs = await getAllSongs();
       const songsWithUrls = savedSongs.map(song => ({
         ...song,
-        src: URL.createObjectURL(song.file) // Create fresh URL for blob
+        src: URL.createObjectURL(song.file) // Create fresh URL for blob                                
       }));
       setSongs(songsWithUrls);
     };
@@ -250,8 +252,28 @@ function App() {
 
   // Set volume
   useEffect(() => {
-    audioRef.current.volume = volume;
-  }, [volume]);
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+
+  const handleVolumeChange = (newVol) => {
+    setVolume(newVol);
+    if (newVol > 0 && isMuted) {
+      setIsMuted(false);
+    }
+  };
+
+  const toggleMute = () => {
+    if (isMuted) {
+      setIsMuted(false);
+      setVolume(prevVolumeRef.current || 0.5);
+    } else {
+      prevVolumeRef.current = volume;
+      setVolume(0);
+      setIsMuted(true);
+    }
+  };
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
@@ -367,6 +389,10 @@ function App() {
             onSkipPrev={skipPrev}
             isShuffle={isShuffle}
             onToggleShuffle={() => setIsShuffle(!isShuffle)}
+            volume={volume}
+            onVolumeChange={handleVolumeChange}
+            isMuted={isMuted}
+            onToggleMute={toggleMute}
           />
         </div>
       </div>

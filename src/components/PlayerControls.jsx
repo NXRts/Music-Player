@@ -1,7 +1,7 @@
 import React from 'react';
-import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Music, Heart } from 'lucide-react';
+import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -98,10 +98,24 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             <div className="w-1/3 hidden md:flex items-center justify-end gap-3 text-text-secondary">
                 <button className="hover:text-white" title="Lyrics"><Mic2 size={20} /></button>
                 <button className="hover:text-white" title="Queue"><ListMusic size={20} /></button>
-                <div className="flex items-center gap-2 group">
-                    <Volume2 size={20} />
-                    <div className="w-24 h-1 bg-bg-highlight rounded-full cursor-pointer relative">
-                        <div className="h-full w-2/3 bg-white group-hover:bg-accent rounded-full"></div>
+                <div className="flex items-center gap-2 group w-32">
+                    <button onClick={onToggleMute} className="hover:text-white" title={isMuted ? "Unmute" : "Mute"}>
+                        {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}
+                    </button>
+
+                    <div className="flex-1 h-full flex items-center">
+                        <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={isMuted ? 0 : volume}
+                            onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:invisible group-hover:[&::-webkit-slider-thumb]:visible transition-all"
+                            style={{
+                                backgroundImage: `linear-gradient(to right, ${isMuted ? '#b3b3b3' : '#1db954'} ${(isMuted ? 0 : volume) * 100}%, #282828 ${(isMuted ? 0 : volume) * 100}%)`
+                            }}
+                        />
                     </div>
                 </div>
             </div>
