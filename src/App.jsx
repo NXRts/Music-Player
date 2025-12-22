@@ -27,6 +27,8 @@ function App() {
   const prevVolumeRef = useRef(0.5);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
+  const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
+  const [songToAdd, setSongToAdd] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -77,33 +79,29 @@ function App() {
     setCurrentView('playlist-detail');
   };
 
-  const handleAddToPlaylist = async (songId) => {
-    if (playlists.length === 0) {
-      alert("Create a playlist first!");
-      return;
-    }
+  const handleAddToPlaylist = (songId) => {
+    setSongToAdd(songId);
+    setShowPlaylistSelector(true);
+  };
 
-    const playlistName = prompt(`Enter playlist name to add to:\n${playlists.map(p => p.name).join(', ')}`);
-    if (!playlistName) return;
+  const confirmAddToPlaylist = async (playlist) => {
+    if (!songToAdd) return;
 
-    const playlist = playlists.find(p => p.name.toLowerCase() === playlistName.toLowerCase());
-    if (!playlist) {
-      alert("Playlist not found");
-      return;
-    }
-
-    if (playlist.songIds.includes(songId)) {
+    if (playlist.songIds.includes(songToAdd)) {
       alert("Song already in playlist");
       return;
     }
 
     const updatedPlaylist = {
       ...playlist,
-      songIds: [...playlist.songIds, songId]
+      songIds: [...playlist.songIds, songToAdd]
     };
 
     await savePlaylist(updatedPlaylist);
     setPlaylists(prev => prev.map(p => p.id === playlist.id ? updatedPlaylist : p));
+
+    setShowPlaylistSelector(false);
+    setSongToAdd(null);
     alert(`Added to ${playlist.name}`);
   };
 
@@ -494,6 +492,52 @@ function App() {
           />
         </div>
       </div>
+
+      {/* Playlist Selector Modal */}
+      {showPlaylistSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-bg-card p-6 rounded-lg w-full max-w-md shadow-2xl relative">
+            <h3 className="text-xl font-bold mb-4">Add to Playlist</h3>
+            <button
+              className="absolute top-4 right-4 text-text-secondary hover:text-white"
+              onClick={() => {
+                setShowPlaylistSelector(false);
+                setSongToAdd(null);
+              }}
+            >
+              ✕
+            </button>
+
+            <div className="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4">
+              {playlists.length === 0 ? (
+                <p className="text-text-secondary">No playlists found.</p>
+              ) : (
+                playlists.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => confirmAddToPlaylist(p)}
+                    className="flex items-center p-3 hover:bg-bg-highlight rounded transition text-left"
+                  >
+                    <Music size={20} className="mr-3 text-accent" />
+                    <span className="font-bold">{p.name}</span>
+                    <span className="ml-auto text-sm text-text-secondary">{p.songIds.length} songs</span>
+                  </button>
+                ))
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                setShowPlaylistSelector(false);
+                handleCreatePlaylist();
+              }}
+              className="w-full bg-bg-highlight hover:bg-opacity-80 text-white py-2 rounded font-bold"
+            >
+              + Create New Playlist
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
