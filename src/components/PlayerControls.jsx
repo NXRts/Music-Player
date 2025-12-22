@@ -87,7 +87,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                             max={duration || 0}
                             value={currentTime || 0}
                             onChange={(e) => onSeek(Number(e.target.value))}
-                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:invisible group-hover:[&::-webkit-slider-thumb]:visible transition-all"
+                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full transition-all"
                         />
                     </div>
                     <span>{formatTime(duration)}</span>
@@ -111,7 +111,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                             step={0.01}
                             value={isMuted ? 0 : volume}
                             onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:invisible group-hover:[&::-webkit-slider-thumb]:visible transition-all"
+                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full transition-all"
                             style={{
                                 backgroundImage: `linear-gradient(to right, ${isMuted ? '#b3b3b3' : '#1db954'} ${(isMuted ? 0 : volume) * 100}%, #282828 ${(isMuted ? 0 : volume) * 100}%)`
                             }}
