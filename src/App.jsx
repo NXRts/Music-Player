@@ -414,14 +414,6 @@ function App() {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold">Good evening</h2>
                   <div>
-                    <input
-                      type="file"
-                      accept="audio/*"
-                      multiple
-                      ref={fileInputRef}
-                      className="hidden"
-                      onChange={handleFileUpload}
-                    />
                     <button
                       onClick={() => fileInputRef.current.click()}
                       className="flex items-center gap-2 bg-accent text-black font-bold py-2 px-4 rounded-full hover:scale-105 transition"
@@ -537,6 +529,15 @@ function App() {
           />
         </div>
       </div>
+
+      <input
+        type="file"
+        accept="audio/*"
+        multiple
+        ref={fileInputRef}
+        className="hidden"
+        onChange={handleFileUpload}
+      />
 
       {/* Playlist Selector Modal */}
       {showPlaylistSelector && (
