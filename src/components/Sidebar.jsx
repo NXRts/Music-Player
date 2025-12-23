@@ -1,6 +1,6 @@
 import { Home, Search, Library, PlusSquare, Heart, Upload, X } from 'lucide-react';
 
-const Sidebar = ({ currentView, onNavigate, onAddMusic, isMobileOpen, onClose }) => {
+const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobileOpen, onClose }) => {
     return (
         <>
             {/* Mobile Overlay */}
@@ -55,7 +55,10 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, isMobileOpen, onClose })
 
                 <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
                     <div className="flex flex-col gap-4 mb-4">
-                        <div className="flex items-center gap-3 hover:text-white transition cursor-pointer">
+                        <div
+                            className="flex items-center gap-3 hover:text-white transition cursor-pointer"
+                            onClick={onCreatePlaylist}
+                        >
                             <PlusSquare size={24} />
                             <span className="font-bold">Create Playlist</span>
                         </div>

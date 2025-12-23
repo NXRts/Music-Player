@@ -399,6 +399,7 @@ function App() {
         currentView={currentView}
         onNavigate={(view) => { setCurrentView(view); setIsMobileMenuOpen(false); }}
         onAddMusic={() => { fileInputRef.current.click(); setIsMobileMenuOpen(false); }}
+        onCreatePlaylist={handleCreatePlaylist}
         isMobileOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
       />
