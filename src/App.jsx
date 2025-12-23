@@ -11,6 +11,7 @@ import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllP
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
 function App() {
+  console.log("App rendering");
   const [token, setTokenState] = useState(null); // Keep for compatibility if needed, but unused now
   const [currentView, setCurrentView] = useState('home');
   const [currentSong, setCurrentSong] = useState(null);
@@ -25,27 +26,46 @@ function App() {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const prevVolumeRef = useRef(0.5);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isShuffle, setIsShuffle] = useState(false);
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [songToAdd, setSongToAdd] = useState(null);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [repeatMode, setRepeatMode] = useState(0); // 0: Off, 1: All, 2: One
 
   const fileInputRef = useRef(null);
+  const audioRef = useRef(null);
+
+  // Initialize Audio on mount
+  useEffect(() => {
+    audioRef.current = new Audio();
+  }, []);
 
   // Load songs & playlists from DB on mount
   useEffect(() => {
     const loadData = async () => {
-      // Load Songs
-      const savedSongs = await getAllSongs();
-      const songsWithUrls = savedSongs.map(song => ({
-        ...song,
-        src: URL.createObjectURL(song.file) // Create fresh URL for blob                                
-      }));
-      setSongs(songsWithUrls);
+      try {
+        // Load Songs
+        const savedSongs = await getAllSongs();
+        const songsWithUrls = savedSongs.map(song => {
+          try {
+            return {
+              ...song,
+              src: song.file ? URL.createObjectURL(song.file) : ''
+            };
+          } catch (e) {
+            console.error("Error creating URL for song:", song, e);
+            return null;
+          }
+        }).filter(s => s !== null);
 
-      // Load Playlists
-      const savedPlaylists = await getAllPlaylists();
-      setPlaylists(savedPlaylists);
+        setSongs(songsWithUrls);
+
+        // Load Playlists
+        const savedPlaylists = await getAllPlaylists();
+        setPlaylists(savedPlaylists);
+      } catch (error) {
+        console.error("Failed to load data:", error);
+      }
     };
     loadData();
   }, []);
@@ -196,8 +216,10 @@ function App() {
         if (currentSong?.id === songId) {
           setCurrentSong(null);
           setIsPlaying(false);
-          audioRef.current.pause();
-          audioRef.current.src = "";
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+          }
         }
       } catch (error) {
         console.error("Failed to delete song:", error);
@@ -221,8 +243,12 @@ function App() {
         setSongs([]);
         setCurrentSong(null);
         setIsPlaying(false);
-        audioRef.current.pause();
-        audioRef.current.src = "";
+        if (audioRef.current) {
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = "";
+          }
+        }
       } catch (error) {
         console.error("Failed to clear library:", error);
         alert("Failed to clear library");
@@ -235,8 +261,7 @@ function App() {
     // For now, let's just make sure Search component receives the full list.
   };
 
-  // Placeholder for audio element
-  const audioRef = useRef(new Audio());
+
 
   const skipNext = () => {
     if (songs.length === 0) return;
@@ -268,16 +293,30 @@ function App() {
     handleSongSelect(prevSong);
   };
 
-  // Handle audio events
+  const toggleRepeat = () => {
+    setRepeatMode(prev => (prev + 1) % 3);
+  };
+
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
     const onEnded = () => {
-      // Don't auto-stop, just go next. 
-      // If we seek to next, handleSongSelect sets isPlaying=true.
-      // But if we just call skipNext, it updates currentSong.
+      if (repeatMode === 2) { // Repeat One
+        audio.currentTime = 0;
+        audio.play();
+        return;
+      }
+
+      const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
+      if (repeatMode === 0 && currentIndex === songs.length - 1) { // Repeat Off & Last Song
+        setIsPlaying(false);
+        return;
+      }
+
+      // Repeat All (1) or Normal Next
       skipNext();
     };
 
@@ -290,11 +329,10 @@ function App() {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', onEnded);
     }
-  }, [currentSong, isShuffle, songs]); // Added songs dependency for skipNext closure
+  }, [currentSong, isShuffle, songs, repeatMode]); // Added repeatMode dependency
 
-  // Sync isPlaying state with audio Play/Pause AND auto-play on song change
   useEffect(() => {
-    if (isPlaying && currentSong) { // Ensure there is a song
+    if (isPlaying && currentSong && audioRef.current) { // Ensure there is a song
       // Small timeout to ensure DOM/Audio element is ready if needed, 
       // but usually direct play works if src is set.
       // We wrap in a promise handling to avoid the "play() request was interrupted" error
@@ -306,7 +344,7 @@ function App() {
           // setIsPlaying(false); 
         });
       }
-    } else if (!isPlaying) {
+    } else if (!isPlaying && audioRef.current) {
       audioRef.current.pause();
     }
   }, [isPlaying, currentSong]); // Depend on currentSong to trigger play when song changes
@@ -342,12 +380,16 @@ function App() {
 
   const handleSongSelect = (song) => {
     setCurrentSong(song);
-    audioRef.current.src = song.src; // Use local blob URL
+    if (audioRef.current) {
+      audioRef.current.src = song.src; // Use local blob URL
+    }
     setIsPlaying(true);
   };
 
   const __handleSeek = (time) => {
-    audioRef.current.currentTime = time;
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
     setCurrentTime(time);
   }
 
@@ -489,6 +531,8 @@ function App() {
             onVolumeChange={handleVolumeChange}
             isMuted={isMuted}
             onToggleMute={toggleMute}
+            repeatMode={repeatMode}
+            onToggleRepeat={toggleRepeat}
           />
         </div>
       </div>

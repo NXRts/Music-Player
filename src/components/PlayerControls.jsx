@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -71,8 +71,9 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         <SkipForward size={24} fill="currentColor" />
                     </button>
                     <button
-                        className="text-text-secondary hover:text-white"
-                        title="Repeat (Not Implemented)"
+                        className={`hover:text-white transition ${repeatMode > 0 ? 'text-accent' : 'text-text-secondary'}`}
+                        onClick={onToggleRepeat}
+                        title={repeatMode === 0 ? "Enable Repeat" : repeatMode === 1 ? "Repeat One" : "Disable Repeat"}
                     >
                         <Repeat size={20} />
                     </button>
@@ -119,7 +120,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
