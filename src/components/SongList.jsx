@@ -28,7 +28,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                     {showMenu && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                            <div className="absolute right-0 top-full mt-2 bg-bg-card border border-bg-highlight rounded shadow-2xl z-50 w-48 py-1">
+                            <div className="absolute right-0 top-full mt-2 border border-gray-700 rounded shadow-2xl z-[100] w-48 py-1" style={{ backgroundColor: '#18181b' }}>
                                 <button
                                     className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
                                     onClick={() => { onSort && onSort('title'); setShowMenu(false); }}
