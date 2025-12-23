@@ -38,6 +38,7 @@ function App() {
   // Initialize Audio on mount
   useEffect(() => {
     audioRef.current = new Audio();
+    audioRef.current.crossOrigin = "anonymous"; // Needed for some visualizer setups if external
   }, []);
 
   // Load songs & playlists from DB on mount
@@ -380,6 +381,52 @@ function App() {
     }
   };
 
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if input is focused (e.g. searching, creating playlist)
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          handlePlayPause();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (audioRef.current) {
+            const newTime = Math.min(audioRef.current.currentTime + 5, audioRef.current.duration || 0);
+            __handleSeek(newTime);
+          }
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (audioRef.current) {
+            const newTime = Math.max(audioRef.current.currentTime - 5, 0);
+            __handleSeek(newTime);
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setVolume(prev => Math.min(prev + 0.1, 1));
+          setIsMuted(false);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setVolume(prev => Math.max(prev - 0.1, 0));
+          break;
+        case 'KeyM':
+          toggleMute();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying, volume, isMuted]); // Note: handlePlayPause, __handleSeek, toggleMute are likely stable or closured, check deps.
+
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
   };
@@ -515,7 +562,7 @@ function App() {
         </main>
 
         {/* Player Bar */}
-        <div className="h-24 bg-bg-secondary border-t border-bg-highlight px-4 flex items-center justify-between z-10">
+        <div className="h-24 bg-bg-secondary border-t border-bg-highlight px-4 flex items-center justify-between z-10 relative overflow-hidden">
           <PlayerControls
             currentSong={currentSong}
             isPlaying={isPlaying}
