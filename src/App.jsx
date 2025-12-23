@@ -256,9 +256,15 @@ function App() {
     }
   };
 
-  const handleSearch = (query) => {
-    // Local search is handled in Search component now, or we can filter here if needed globally.
-    // For now, let's just make sure Search component receives the full list.
+  const handleSort = (type) => {
+    const sortedSongs = [...songs];
+    if (type === 'title') {
+      sortedSongs.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (type === 'date') {
+      // Newest first
+      sortedSongs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+    setSongs(sortedSongs);
   };
 
 
@@ -464,6 +470,7 @@ function App() {
                   onDelete={handleDeleteSong}
                   onClearAll={handleClearAllSongs}
                   onAddToPlaylist={handleAddToPlaylist}
+                  onSort={handleSort}
                 />
               </>
             )}

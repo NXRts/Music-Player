@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Music, MoreHorizontal, ListPlus } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist, onSort }) => {
+    const [showMenu, setShowMenu] = useState(false);
+
     return (
         <div className="flex flex-col">
             {/* Header Row */}
@@ -11,17 +13,44 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                 <div>Title</div>
                 <div>Artist</div>
                 <div className="text-right pr-4">Duration</div>
-                <div className="w-8 flex items-center justify-center">
+                <div className="w-8 flex items-center justify-center relative">
                     <button
                         className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
                         onClick={(e) => {
                             e.stopPropagation();
-                            onClearAll && onClearAll();
+                            setShowMenu(prev => !prev);
                         }}
-                        title="Clear All Songs"
+                        title="Options"
                     >
                         <MoreHorizontal size={20} />
                     </button>
+
+                    {showMenu && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
+                            <div className="absolute right-0 top-full mt-2 bg-bg-card border border-bg-highlight rounded shadow-2xl z-50 w-48 py-1">
+                                <button
+                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
+                                    onClick={() => { onSort && onSort('title'); setShowMenu(false); }}
+                                >
+                                    Sort by Title (A-Z)
+                                </button>
+                                <button
+                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
+                                    onClick={() => { onSort && onSort('date'); setShowMenu(false); }}
+                                >
+                                    Sort by Date Added
+                                </button>
+                                <div className="border-t border-bg-highlight my-1"></div>
+                                <button
+                                    className="w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white text-text-secondary text-sm transition"
+                                    onClick={() => { onClearAll && onClearAll(); setShowMenu(false); }}
+                                >
+                                    Clear All Songs
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
