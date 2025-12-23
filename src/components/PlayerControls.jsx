@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -97,7 +97,13 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
 
             {/* Right: Volume & Extra */}
             <div className="w-1/3 hidden md:flex items-center justify-end gap-3 text-text-secondary">
-                <button className="hover:text-white" title="Lyrics"><Mic2 size={20} /></button>
+                <button
+                    className={`hover:text-white transition ${isLyricsOpen ? 'text-accent' : ''}`}
+                    title="Lyrics"
+                    onClick={onToggleLyrics}
+                >
+                    <Mic2 size={20} />
+                </button>
                 <button className="hover:text-white" title="Queue"><ListMusic size={20} /></button>
                 <div className="flex items-center gap-2 group w-32">
                     <button onClick={onToggleMute} className="hover:text-white" title={isMuted ? "Unmute" : "Mute"}>

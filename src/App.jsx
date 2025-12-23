@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Search from './components/Search';
 import YourLibrary from './components/Library';
+import LyricsView from './components/LyricsView';
 
 import { Upload, Music, ArrowLeft } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
@@ -31,6 +32,7 @@ function App() {
   const [songToAdd, setSongToAdd] = useState(null);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState(0); // 0: Off, 1: All, 2: One
+  const [showLyrics, setShowLyrics] = useState(false);
 
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
@@ -370,6 +372,23 @@ function App() {
     }
   };
 
+  const handleSaveLyrics = async (songId, newLyrics) => {
+    // Update local state
+    const updatedSongs = songs.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s);
+    setSongs(updatedSongs);
+
+    // Update current song if it's the one being edited
+    if (currentSong && currentSong.id === songId) {
+      setCurrentSong(prev => ({ ...prev, lyrics: newLyrics }));
+    }
+
+    // Save to DB
+    const songToUpdate = updatedSongs.find(s => s.id === songId);
+    if (songToUpdate) {
+      await saveSong(songToUpdate);
+    }
+  };
+
   const toggleMute = () => {
     if (isMuted) {
       setIsMuted(false);
@@ -460,8 +479,9 @@ function App() {
       <div className="flex-1 flex flex-col relative w-full">
         <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary">
-          <>
+        <main className="flex-1 flex overflow-hidden relative">
+          <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary">
+
             {currentView === 'home' && (
               <>
                 <div className="flex justify-between items-center mb-6">
@@ -558,7 +578,18 @@ function App() {
                 />
               </div>
             )}
-          </>
+          </div>
+
+          {/* Lyrics Panel */}
+          {showLyrics && (
+            <div className="w-1/4 min-w-[250px] border-l border-bg-highlight bg-bg-card z-20 flex-shrink-0 transition-all duration-300">
+              <LyricsView
+                song={currentSong}
+                onClose={() => setShowLyrics(false)}
+                onSaveLyrics={handleSaveLyrics}
+              />
+            </div>
+          )}
         </main>
 
         {/* Player Bar */}
@@ -580,6 +611,8 @@ function App() {
             onToggleMute={toggleMute}
             repeatMode={repeatMode}
             onToggleRepeat={toggleRepeat}
+            onToggleLyrics={() => setShowLyrics(!showLyrics)}
+            isLyricsOpen={showLyrics}
           />
         </div>
       </div>
@@ -592,6 +625,8 @@ function App() {
         className="hidden"
         onChange={handleFileUpload}
       />
+
+
 
       {/* Playlist Selector Modal */}
       {showPlaylistSelector && (
