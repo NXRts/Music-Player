@@ -682,6 +682,21 @@ function App() {
                     onDelete={(id) => setQueue(prev => prev.filter(s => s.id !== id))} // Allow removing from queue
                   />
                 )}
+
+                {history.length > 0 && (
+                  <>
+                    <h3 className="text-xl font-bold mb-4 text-text-secondary mt-8">Recently Played</h3>
+                    <SongList
+                      songs={history.slice(0, 5)}
+                      currentSong={null}
+                      onSelect={handleSongSelect}
+                      isPlaying={false}
+                      onAddToPlaylist={handleAddToPlaylist}
+                      onAddToQueue={handleAddToQueue}
+                      onPlayNext={handlePlayNext}
+                    />
+                  </>
+                )}
               </div>
             )}
 
