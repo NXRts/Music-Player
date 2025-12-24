@@ -2,13 +2,23 @@
 import React, { useState } from 'react';
 import { Music, MoreHorizontal, ListPlus } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist, onSort }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist, onSort, onAddToQueue, onPlayNext }) => {
+    const [activeMenuId, setActiveMenuId] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
 
+    // Close menu when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = () => {
+            setActiveMenuId(null);
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col pb-24">
             {/* Header Row */}
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary sticky top-0 z-30">
                 <div className="w-8 text-center">#</div>
                 <div>Title</div>
                 <div>Artist</div>
@@ -28,7 +38,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                     {showMenu && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                            <div className="absolute right-0 top-full mt-2 border border-gray-700 rounded shadow-2xl z-[100] w-48 py-1" style={{ backgroundColor: '#18181b' }}>
+                            <div className="absolute right-0 top-full mt-2 border border-gray-700 bg-neutral-900 rounded shadow-2xl z-[100] w-48 py-1">
                                 <button
                                     className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
                                     onClick={() => { onSort && onSort('title'); setShowMenu(false); }}
@@ -93,15 +103,10 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                                 {song.duration}
                             </div>
 
-                            <div
-                                className="flex items-center justify-center gap-1 relative z-50 cursor-default"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                }}
-                            >
+                            {/* Options Menu Button column */}
+                            <div className="relative flex justify-center items-center gap-1">
                                 <button
-                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
+                                    className="p-2 rounded-full hover:text-white hover:bg-bg-highlight text-text-secondary z-20"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAddToPlaylist && onAddToPlaylist(song.id);
@@ -111,17 +116,45 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                                     <ListPlus size={20} />
                                 </button>
                                 <button
-                                    className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
+                                    className={`p-2 rounded-full hover:text-white hover:bg-bg-highlight z-20 ${activeMenuId === song.id ? 'text-white' : 'text-text-secondary'}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (onDelete) {
-                                            onDelete(song.id);
-                                        }
+                                        setActiveMenuId(activeMenuId === song.id ? null : song.id);
                                     }}
-                                    title="Delete Song"
                                 >
                                     <MoreHorizontal size={20} />
                                 </button>
+
+                                {/* Dropdown Menu */}
+                                {activeMenuId === song.id && (
+                                    <div className="absolute right-0 top-10 w-48 bg-neutral-900 rounded shadow-xl z-50 py-1 border border-gray-700 animate-fade-in">
+                                        <button
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
+                                            onClick={(e) => { e.stopPropagation(); onPlayNext(song.id); setActiveMenuId(null); }}
+                                        >
+                                            Play Next
+                                        </button>
+                                        <button
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
+                                            onClick={(e) => { e.stopPropagation(); onAddToQueue(song.id); setActiveMenuId(null); }}
+                                        >
+                                            Add to Queue
+                                        </button>
+                                        <button
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
+                                            onClick={(e) => { e.stopPropagation(); onAddToPlaylist(song.id); setActiveMenuId(null); }}
+                                        >
+                                            Add to Playlist
+                                        </button>
+                                        <div className="border-t border-[#3e3e3e] my-1"></div>
+                                        <button
+                                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#3e3e3e]"
+                                            onClick={(e) => { e.stopPropagation(); onDelete(song.id); setActiveMenuId(null); }}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     );

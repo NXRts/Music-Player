@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike, onToggleQueue }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -108,7 +108,13 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                 >
                     <Mic2 size={20} />
                 </button>
-                <button className="hover:text-white" title="Queue"><ListMusic size={20} /></button>
+                <button
+                    className="hover:text-white"
+                    title="Queue"
+                    onClick={onToggleQueue}
+                >
+                    <ListMusic size={20} />
+                </button>
                 <div className="flex items-center gap-2 group w-32">
                     <button onClick={onToggleMute} className="hover:text-white" title={isMuted ? "Unmute" : "Mute"}>
                         {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}

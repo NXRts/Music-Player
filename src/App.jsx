@@ -32,10 +32,19 @@ function App() {
   const [songToAdd, setSongToAdd] = useState(null);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState(0); // 0: Off, 1: All, 2: One
+
   const [showLyrics, setShowLyrics] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [queue, setQueue] = useState([]);
 
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
+
+  // ... (keeping existing refs)
+
+  // ...
+
+
 
   // Initialize Audio on mount
   useEffect(() => {
@@ -273,6 +282,13 @@ function App() {
 
 
   const skipNext = () => {
+    if (queue.length > 0) {
+      const nextSong = queue[0];
+      setQueue(prev => prev.slice(1));
+      handleSongSelect(nextSong);
+      return;
+    }
+
     if (songs.length === 0) return;
 
     let nextIndex;
@@ -451,6 +467,19 @@ function App() {
   };
 
   const handleSongSelect = (song) => {
+    if (currentSong) {
+      setHistory(prev => {
+        const newHistory = [currentSong, ...prev];
+        // Unique history based on ID
+        const uniqueHistory = newHistory.filter((item, index, self) =>
+          index === self.findIndex((t) => (
+            t.id === item.id
+          ))
+        );
+        return uniqueHistory.slice(0, 10);
+      });
+    }
+
     setCurrentSong(song);
     if (audioRef.current) {
       audioRef.current.src = song.src; // Use local blob URL
@@ -481,6 +510,22 @@ function App() {
     const songToUpdate = updatedSongs.find(s => s.id === song.id);
     if (songToUpdate) {
       await saveSong(songToUpdate);
+    }
+  };
+
+  const handleAddToQueue = (songId) => {
+    const song = songs.find(s => s.id === songId);
+    if (song) {
+      setQueue(prev => [...prev, song]);
+      alert("Added to queue");
+    }
+  };
+
+  const handlePlayNext = (songId) => {
+    const song = songs.find(s => s.id === songId);
+    if (song) {
+      setQueue(prev => [song, ...prev]);
+      alert("Playing next");
     }
   };
 
@@ -557,6 +602,8 @@ function App() {
                   onClearAll={handleClearAllSongs}
                   onAddToPlaylist={handleAddToPlaylist}
                   onSort={handleSort}
+                  onAddToQueue={handleAddToQueue}
+                  onPlayNext={handlePlayNext}
                 />
               </>
             )}
@@ -595,7 +642,46 @@ function App() {
                   onDelete={handleDeleteSong}
                   onAddToPlaylist={handleAddToPlaylist}
                   onSort={handleSort}
+                  onAddToQueue={handleAddToQueue}
+                  onPlayNext={handlePlayNext}
                 />
+              </div>
+            )}
+
+            {currentView === 'queue' && (
+              <div className="flex flex-col h-full">
+                <h2 className="text-3xl font-bold mb-6">Queue</h2>
+
+                <h3 className="text-xl font-bold mb-4 text-text-secondary">Now Playing</h3>
+                {currentSong && (
+                  <div className="mb-8">
+                    <SongList
+                      songs={[currentSong]}
+                      currentSong={currentSong}
+                      onSelect={() => { }} // No-op for now playing
+                      isPlaying={isPlaying}
+                      onAddToPlaylist={handleAddToPlaylist}
+                      onAddToQueue={handleAddToQueue}
+                      onPlayNext={handlePlayNext}
+                    />
+                  </div>
+                )}
+
+                <h3 className="text-xl font-bold mb-4 text-text-secondary">Next In Queue</h3>
+                {queue.length === 0 ? (
+                  <p className="text-text-secondary">Queue is empty</p>
+                ) : (
+                  <SongList
+                    songs={queue}
+                    currentSong={null} // Don't highlight any as current in the upcoming list
+                    onSelect={handleSongSelect} // Allow playing from queue
+                    isPlaying={false}
+                    onAddToPlaylist={handleAddToPlaylist}
+                    onAddToQueue={handleAddToQueue}
+                    onPlayNext={handlePlayNext}
+                    onDelete={(id) => setQueue(prev => prev.filter(s => s.id !== id))} // Allow removing from queue
+                  />
+                )}
               </div>
             )}
 
@@ -621,6 +707,8 @@ function App() {
                   isPlaying={isPlaying}
                   onDelete={handleRemoveFromPlaylist}
                   onAddToPlaylist={handleAddToPlaylist}
+                  onAddToQueue={handleAddToQueue}
+                  onPlayNext={handlePlayNext}
                 />
               </div>
             )}
@@ -660,6 +748,7 @@ function App() {
             onToggleLyrics={() => setShowLyrics(!showLyrics)}
             isLyricsOpen={showLyrics}
             onToggleLike={handleToggleLike}
+            onToggleQueue={() => setCurrentView(prev => prev === 'queue' ? 'home' : 'queue')}
           />
         </div>
       </div>
@@ -678,7 +767,7 @@ function App() {
       {/* Playlist Selector Modal */}
       {showPlaylistSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-bg-card p-6 rounded-lg w-full max-w-md shadow-2xl relative">
+          <div className="bg-neutral-900 border border-gray-700 p-6 rounded-lg w-full max-w-md shadow-2xl relative">
             <h3 className="text-xl font-bold mb-4">Add to Playlist</h3>
             <button
               className="absolute top-4 right-4 text-text-secondary hover:text-white"
