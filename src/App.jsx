@@ -7,7 +7,7 @@ import Search from './components/Search';
 import YourLibrary from './components/Library';
 import LyricsView from './components/LyricsView';
 
-import { Upload, Music, ArrowLeft } from 'lucide-react';
+import { Upload, Music, ArrowLeft, Heart } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
@@ -465,6 +465,25 @@ function App() {
     setCurrentTime(time);
   }
 
+  const handleToggleLike = async (song) => {
+    if (!song) return;
+
+    const newIsLiked = !song.isLiked;
+    const updatedSongs = songs.map(s => s.id === song.id ? { ...s, isLiked: newIsLiked } : s);
+    setSongs(updatedSongs);
+
+    // Update current song if it's the one being toggled
+    if (currentSong && currentSong.id === song.id) {
+      setCurrentSong(prev => ({ ...prev, isLiked: newIsLiked }));
+    }
+
+    // Save to DB
+    const songToUpdate = updatedSongs.find(s => s.id === song.id);
+    if (songToUpdate) {
+      await saveSong(songToUpdate);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-primary text-white overflow-hidden">
       <Sidebar
@@ -553,6 +572,33 @@ function App() {
               />
             )}
 
+            {currentView === 'liked' && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white rounded shadow-lg">
+                    <Heart size={64} fill="white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase mb-2">Playlist</p>
+                    <h2 className="text-5xl font-bold mb-4">Liked Songs</h2>
+                    <p className="text-sm text-text-secondary">
+                      {songs.filter(s => s.isLiked).length} songs
+                    </p>
+                  </div>
+                </div>
+
+                <SongList
+                  songs={songs.filter(s => s.isLiked)}
+                  currentSong={currentSong}
+                  onSelect={handleSongSelect}
+                  isPlaying={isPlaying}
+                  onDelete={handleDeleteSong}
+                  onAddToPlaylist={handleAddToPlaylist}
+                  onSort={handleSort}
+                />
+              </div>
+            )}
+
             {currentView === 'playlist-detail' && activePlaylist && (
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-4 mb-6">
@@ -613,6 +659,7 @@ function App() {
             onToggleRepeat={toggleRepeat}
             onToggleLyrics={() => setShowLyrics(!showLyrics)}
             isLyricsOpen={showLyrics}
+            onToggleLike={handleToggleLike}
           />
         </div>
       </div>

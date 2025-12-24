@@ -71,7 +71,10 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobi
                             </div>
                             <span className="font-bold">Add Local Music</span>
                         </div>
-                        <div className="flex items-center gap-3 hover:text-white transition cursor-pointer">
+                        <div
+                            className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'liked' ? 'text-white' : 'hover:text-white'}`}
+                            onClick={() => onNavigate('liked')}
+                        >
                             <Heart size={24} className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white fill-current p-1 rounded-sm" />
                             <span className="font-bold">Liked Songs</span>
                         </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike }) => {
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -32,8 +32,12 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                     <div className="text-sm text-white hover:underline cursor-pointer font-medium truncate max-w-[120px] md:max-w-none">{currentSong.title}</div>
                     <div className="text-xs text-text-secondary hover:underline cursor-pointer truncate max-w-[120px] md:max-w-none">{currentSong.artist}</div>
                 </div>
-                <button className="text-text-secondary hover:text-accent hover:fill-accent transition ml-2 hidden md:block" title="Save to Library">
-                    <Heart size={20} />
+                <button
+                    className={`transition ml-2 hidden md:block ${currentSong.isLiked ? 'text-accent fill-accent' : 'text-text-secondary hover:text-white'}`}
+                    title={currentSong.isLiked ? "Remove from Liked" : "Like Song"}
+                    onClick={() => onToggleLike(currentSong)}
+                >
+                    <Heart size={20} fill={currentSong.isLiked ? "currentColor" : "none"} />
                 </button>
             </div>
 
