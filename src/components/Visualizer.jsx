@@ -79,8 +79,7 @@ const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics }) => {
     return (
         <div className="h-full w-full flex flex-row bg-transparent gap-4 p-4 md:p-6 overflow-hidden">
             {/* Visualizer Section (75%) */}
-            <div className="flex-[3] flex flex-col min-w-0">
-                <h2 className="text-2xl font-bold mb-4 text-white">Audio Visualizer</h2>
+            <div className="flex-[3] flex flex-col min-w-0 h-full">
                 <div className="flex-1 w-full bg-neutral-900/50 rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative backdrop-blur-sm">
                     <canvas ref={canvasRef} className="w-full h-full block" />
                 </div>
