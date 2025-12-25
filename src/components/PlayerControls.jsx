@@ -1,7 +1,23 @@
-import React from 'react';
-import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart, Moon } from 'lucide-react';
 
-const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike, onToggleQueue }) => {
+const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike, onToggleQueue, isSleepTimerActive, onSetSleepTimer }) => {
+    const [showSleepMenu, setShowSleepMenu] = useState(false);
+    const sleepMenuRef = useRef(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (sleepMenuRef.current && !sleepMenuRef.current.contains(event.target)) {
+                setShowSleepMenu(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Format seconds to mm:ss
     const formatTime = (time) => {
@@ -10,6 +26,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
     };
+
     if (!currentSong) return (
         <div className="w-full flex items-center justify-between text-text-secondary">
             <div>Select a song to play</div>
@@ -101,6 +118,37 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
 
             {/* Right: Volume & Extra */}
             <div className="w-1/3 hidden md:flex items-center justify-end gap-3 text-text-secondary">
+                {/* Sleep Timer */}
+                <div className="relative" ref={sleepMenuRef}>
+                    <button
+                        className={`hover:text-white transition ${isSleepTimerActive ? 'text-accent' : ''}`}
+                        title="Sleep Timer"
+                        onClick={() => setShowSleepMenu(!showSleepMenu)}
+                    >
+                        <Moon size={20} fill={isSleepTimerActive ? "currentColor" : "none"} />
+                    </button>
+                    {showSleepMenu && (
+                        <div className="absolute bottom-full mb-2 right-0 bg-neutral-900 border border-gray-700 rounded shadow-xl w-32 py-1 z-50">
+                            {[5, 15, 30, 60].map((min) => (
+                                <button
+                                    key={min}
+                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
+                                    onClick={() => { onSetSleepTimer(min); setShowSleepMenu(false); }}
+                                >
+                                    {min} Minutes
+                                </button>
+                            ))}
+                            <div className="border-t border-gray-700 my-1"></div>
+                            <button
+                                className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-red-500 text-sm"
+                                onClick={() => { onSetSleepTimer(0); setShowSleepMenu(false); }}
+                            >
+                                Turn Off
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <button
                     className={`hover:text-white transition ${isLyricsOpen ? 'text-accent' : ''}`}
                     title="Lyrics"

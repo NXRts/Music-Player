@@ -32,10 +32,39 @@ function App() {
   const [songToAdd, setSongToAdd] = useState(null);
   const [isShuffle, setIsShuffle] = useState(false);
   const [repeatMode, setRepeatMode] = useState(0); // 0: Off, 1: All, 2: One
-
+  const [isSleepTimerActive, setIsSleepTimerActive] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
   const [history, setHistory] = useState([]);
   const [queue, setQueue] = useState([]);
+
+  // ... (existing states)
+  const sleepTimerRef = useRef(null);
+
+  // ... (existing refs)
+
+  const handleSetSleepTimer = (minutes) => {
+    // Clear existing timer
+    if (sleepTimerRef.current) {
+      clearTimeout(sleepTimerRef.current);
+      sleepTimerRef.current = null;
+    }
+
+    if (minutes === 0) {
+      setIsSleepTimerActive(false);
+      alert("Sleep timer turned off");
+      return;
+    }
+
+    setIsSleepTimerActive(true);
+    alert(`Sleep timer set to ${minutes} minutes`);
+
+    sleepTimerRef.current = setTimeout(() => {
+      setIsPlaying(false);
+      setIsSleepTimerActive(false);
+      sleepTimerRef.current = null;
+      // Optional: alert or toast here? acts might disrupt sleep. Better just stop.
+    }, minutes * 60 * 1000);
+  };
 
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
@@ -742,7 +771,7 @@ function App() {
         </main>
 
         {/* Player Bar */}
-        <div className="h-24 bg-bg-secondary border-t border-bg-highlight px-4 flex items-center justify-between z-10 relative overflow-hidden">
+        <div className="h-24 bg-bg-secondary border-t border-bg-highlight px-4 flex items-center justify-between z-50 relative">
           <PlayerControls
             currentSong={currentSong}
             isPlaying={isPlaying}
@@ -762,6 +791,8 @@ function App() {
             onToggleRepeat={toggleRepeat}
             onToggleLyrics={() => setShowLyrics(!showLyrics)}
             isLyricsOpen={showLyrics}
+            isSleepTimerActive={isSleepTimerActive}
+            onSetSleepTimer={handleSetSleepTimer}
             onToggleLike={handleToggleLike}
             onToggleQueue={() => setCurrentView(prev => prev === 'queue' ? 'home' : 'queue')}
           />
