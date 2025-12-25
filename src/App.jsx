@@ -639,23 +639,31 @@ function App() {
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {/* Featured Cards / "Good Evening" Style */}
-                  {songs.slice(0, 6).map(song => (
-                    <div key={song.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => handleSongSelect(song)}>
-                      {song.cover && song.cover.includes('placehold.co') ? (
-                        <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
-                          <Music size={32} />
-                        </div>
-                      ) : (
-                        <img src={song.cover} alt={song.title} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
-                      )}
-                      <div className="px-4 flex-1 font-bold truncate text-sm md:text-base">{song.title}</div>
+{
+    playlists.slice(0, 6).map(playlist => {
+        const firstSongId = playlist.songIds[0];
+        const firstSong = firstSongId ? songs.find(s => s.id === firstSongId) : null;
+        const cover = firstSong ? firstSong.cover : null;
 
-                      {/* Play Button (Hover) */}
-                      <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute right-4 shadow-xl bg-accent rounded-full p-3 flex items-center justify-center hover:scale-105">
-                        <Play fill="black" className="text-black" size={20} />
-                      </div>
+        return (
+            <div key={playlist.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
+                {cover && !cover.includes('placehold.co') ? (
+                    <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
+                ) : (
+                    <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
+                        <Music size={32} />
                     </div>
-                  ))}
+                )}
+                <div className="px-4 flex-1 font-bold truncate text-sm md:text-base">{playlist.name}</div>
+
+                {/* Play Button (Hover) */}
+                <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute right-4 shadow-xl bg-accent rounded-full p-3 flex items-center justify-center hover:scale-105">
+                    <Play fill="black" className="text-black" size={20} />
+                </div>
+            </div>
+        );
+    })
+}
                 </div>
 
                 <h3 className="text-xl font-bold mb-4">Recommended for you</h3>
