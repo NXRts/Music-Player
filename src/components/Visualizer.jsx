@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
+import LyricsView from './LyricsView';
 
-const Visualizer = ({ analyser, isPlaying }) => {
+const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics }) => {
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
 
@@ -12,8 +13,10 @@ const Visualizer = ({ analyser, isPlaying }) => {
 
         // Handle resizing
         const handleResize = () => {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+            if (canvas.parentElement) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+            }
         };
         handleResize();
         window.addEventListener('resize', handleResize);
@@ -56,9 +59,7 @@ const Visualizer = ({ analyser, isPlaying }) => {
         if (isPlaying) {
             renderFrame();
         } else {
-            // Clean frame if stopped? Or keep last state? 
-            // Ideally clear or just stop updating
-            renderFrame(); // Keep rendering to show it flatline or fade
+            renderFrame();
         }
 
         return () => {
@@ -76,10 +77,22 @@ const Visualizer = ({ analyser, isPlaying }) => {
     }
 
     return (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-transparent p-4 md:p-8">
-            <h2 className="text-2xl font-bold mb-4 text-white self-start">Audio Visualizer</h2>
-            <div className="flex-1 w-full bg-neutral-900/50 rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative backdrop-blur-sm">
-                <canvas ref={canvasRef} className="w-full h-full block" />
+        <div className="h-full w-full flex flex-row bg-transparent gap-4 p-4 md:p-6 overflow-hidden">
+            {/* Visualizer Section (75%) */}
+            <div className="flex-[3] flex flex-col items-center justify-center min-w-0">
+                <h2 className="text-2xl font-bold mb-4 text-white self-start">Audio Visualizer</h2>
+                <div className="flex-1 w-full bg-neutral-900/50 rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative backdrop-blur-sm">
+                    <canvas ref={canvasRef} className="w-full h-full block" />
+                </div>
+            </div>
+
+            {/* Lyrics Section (25%) */}
+            <div className="flex-1 min-w-[300px] h-full bg-bg-card rounded-xl border border-gray-800 shadow-xl overflow-hidden">
+                <LyricsView
+                    song={currentSong}
+                    onSaveLyrics={onSaveLyrics}
+                // No onClose prop passed, so button will be hidden
+                />
             </div>
         </div>
     );

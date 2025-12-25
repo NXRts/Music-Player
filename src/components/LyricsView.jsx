@@ -26,12 +26,14 @@ const LyricsView = ({ song, onClose, onSaveLyrics }) => {
                     <h2 className="text-2xl font-bold text-white">{song.title}</h2>
                     <p className="text-text-secondary">{song.artist}</p>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-bg-highlight rounded-full transition text-gray-400 hover:text-white"
-                >
-                    <X size={32} />
-                </button>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-bg-highlight rounded-full transition text-gray-400 hover:text-white"
+                    >
+                        <X size={32} />
+                    </button>
+                )}
             </div>
 
             {/* Content */}

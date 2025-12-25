@@ -789,7 +789,12 @@ function App() {
             )}
 
             {currentView === 'visualizer' && (
-              <Visualizer analyser={analyserRef.current} isPlaying={isPlaying} />
+              <Visualizer
+                analyser={analyserRef.current}
+                isPlaying={isPlaying}
+                currentSong={currentSong}
+                onSaveLyrics={handleSaveLyrics}
+              />
             )}
           </div>
 
