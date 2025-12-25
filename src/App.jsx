@@ -7,7 +7,7 @@ import Search from './components/Search';
 import YourLibrary from './components/Library';
 import LyricsView from './components/LyricsView';
 import Visualizer from './components/Visualizer';
-import { Upload, Music, ArrowLeft, Heart } from 'lucide-react';
+import { Upload, Music, ArrowLeft, Heart, Play } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
@@ -545,6 +545,7 @@ function App() {
       audioRef.current.src = song.src; // Use local blob URL
     }
     setIsPlaying(true);
+    setShowLyrics(true); // Auto-open sidebar
   };
 
   const __handleSeek = (time) => {
@@ -633,20 +634,22 @@ function App() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                  {/* Featured Cards / "Jump Back In" */}
-                  {songs.slice(0, 3).map(song => (
-                    <div key={song.id} className="flex items-center bg-bg-highlight bg-opacity-50 hover:bg-opacity-100 transition rounded-md overflow-hidden cursor-pointer group" onClick={() => handleSongSelect(song)}>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                  {/* Featured Cards / "Good Evening" Style */}
+                  {songs.slice(0, 6).map(song => (
+                    <div key={song.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => handleSongSelect(song)}>
                       {song.cover && song.cover.includes('placehold.co') ? (
-                        <div className="w-20 h-20 min-w-20 min-h-20 bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
+                        <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
                           <Music size={32} />
                         </div>
                       ) : (
-                        <img src={song.cover} alt={song.title} className="w-20 h-20 object-cover shadow-lg" />
+                        <img src={song.cover} alt={song.title} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
                       )}
-                      <div className="p-4 flex-1 font-bold truncate">{song.title}</div>
-                      <div className="mr-4 opacity-0 group-hover:opacity-100 transition shadow-xl bg-accent rounded-full p-3 flex items-center justify-center">
-                        <span className="text-black">▶</span>
+                      <div className="px-4 flex-1 font-bold truncate text-sm md:text-base">{song.title}</div>
+
+                      {/* Play Button (Hover) */}
+                      <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute right-4 shadow-xl bg-accent rounded-full p-3 flex items-center justify-center hover:scale-105">
+                        <Play fill="black" className="text-black" size={20} />
                       </div>
                     </div>
                   ))}
@@ -798,8 +801,8 @@ function App() {
             )}
           </div>
 
-          {/* Lyrics Panel */}
-          {showLyrics && (
+          {/* Lyrics Panel - Hide in Visualizer to avoid duplicate panels */}
+          {showLyrics && currentView !== 'visualizer' && (
             <div className="w-1/4 min-w-[250px] border-l border-bg-highlight bg-bg-card z-20 flex-shrink-0 transition-all duration-300">
               <LyricsView
                 song={currentSong}
