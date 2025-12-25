@@ -6,7 +6,7 @@ import Header from './components/Header';
 import Search from './components/Search';
 import YourLibrary from './components/Library';
 import LyricsView from './components/LyricsView';
-
+import Visualizer from './components/Visualizer';
 import { Upload, Music, ArrowLeft, Heart } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
@@ -68,6 +68,36 @@ function App() {
 
   const fileInputRef = useRef(null);
   const audioRef = useRef(null);
+
+  // Audio Context & Visualizer
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const sourceRef = useRef(null);
+
+  const setupAudioContext = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (!analyserRef.current) {
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+    }
+
+    if (audioRef.current && !sourceRef.current) {
+      try {
+        sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
+        sourceRef.current.connect(analyserRef.current);
+        analyserRef.current.connect(audioContextRef.current.destination);
+      } catch (e) {
+        console.error("Audio context setup error", e);
+      }
+    }
+
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+  };
 
   // ... (keeping existing refs)
 
@@ -390,6 +420,7 @@ function App() {
       // Small timeout to ensure DOM/Audio element is ready if needed, 
       // but usually direct play works if src is set.
       // We wrap in a promise handling to avoid the "play() request was interrupted" error
+      setupAudioContext();
       const playPromise = audioRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(e => {
@@ -755,6 +786,10 @@ function App() {
                   onPlayNext={handlePlayNext}
                 />
               </div>
+            )}
+
+            {currentView === 'visualizer' && (
+              <Visualizer analyser={analyserRef.current} isPlaying={isPlaying} />
             )}
           </div>
 

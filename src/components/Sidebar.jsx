@@ -1,4 +1,4 @@
-import { Home, Search, Library, PlusSquare, Heart, Upload, X } from 'lucide-react';
+import { Home, Search, Library, PlusSquare, Heart, Upload, X, Activity } from 'lucide-react';
 
 const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobileOpen, onClose }) => {
     return (
@@ -77,6 +77,13 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobi
                         >
                             <Heart size={24} className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white fill-current p-1 rounded-sm" />
                             <span className="font-bold">Liked Songs</span>
+                        </div>
+                        <div
+                            className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'visualizer' ? 'text-white' : 'hover:text-white'}`}
+                            onClick={() => onNavigate('visualizer')}
+                        >
+                            <Activity size={24} />
+                            <span className="font-bold">Visualizer</span>
                         </div>
                     </div>
 
