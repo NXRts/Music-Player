@@ -18,17 +18,17 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
     return (
         <div className="flex flex-col pb-24">
             {/* Header & Sort */}
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-2 sticky top-0 bg-bg-primary z-30 border-b border-bg-highlight mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
-                <div className="w-8 text-center">#</div>
-                <div>Title</div>
-                <div>Artist</div>
-                <div className="text-right pr-4">DURATION</div>
+            <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 border-b border-white/10 mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
+                <div className="w-8 text-center text-xs md:text-sm">#</div>
+                <div className="text-xs md:text-sm">Title</div>
+                <div className="hidden md:block text-sm">Artist</div>
+                <div className="hidden md:block text-right pr-4 text-sm">DURATION</div>
                 <div className="relative flex justify-end">
                     <button
                         onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); }}
                         className="flex items-center gap-2 hover:text-white hover:bg-white/10 px-2 py-1 rounded transition"
                     >
-                        Sort <ArrowDownAZ size={16} />
+                        <span className="hidden md:inline">Sort</span> <ArrowDownAZ size={16} />
                     </button>
 
                     {showSortMenu && (
@@ -48,7 +48,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                         <div
                             key={song.id}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
+                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
                         >
                             <div className="w-8 flex items-center justify-center relative">
                                 <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
@@ -70,14 +70,15 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                                 )}
                                 <div className="flex flex-col truncate">
                                     <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-white'}`}>{song.title}</span>
+                                    <span className="text-xs text-text-secondary md:hidden truncate">{song.artist}</span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center truncate text-sm">
+                            <div className="hidden md:flex items-center truncate text-sm">
                                 {song.artist}
                             </div>
 
-                            <div className="flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
+                            <div className="hidden md:flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
                                 {song.duration}
                             </div>
 
