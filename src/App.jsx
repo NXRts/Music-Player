@@ -7,7 +7,8 @@ import Search from './components/Search';
 import YourLibrary from './components/Library';
 import LyricsView from './components/LyricsView';
 import Visualizer from './components/Visualizer';
-import { Upload, Music, ArrowLeft, Heart, Play } from 'lucide-react';
+import Equalizer from './components/Equalizer';
+import { Upload, Music, ArrowLeft, Heart, Play, Sliders } from 'lucide-react';
 import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
@@ -36,6 +37,9 @@ function App() {
   const [showLyrics, setShowLyrics] = useState(false);
   const [history, setHistory] = useState([]);
   const [queue, setQueue] = useState([]);
+  const [showEqualizer, setShowEqualizer] = useState(false);
+  const [eqGains, setEqGains] = useState([0, 0, 0, 0, 0]);
+  const filtersRef = useRef([]);
 
   // ... (existing states)
   const sleepTimerRef = useRef(null);
@@ -84,10 +88,39 @@ function App() {
       analyserRef.current.fftSize = 256;
     }
 
+    // Initialize Filters if not passed
+    if (filtersRef.current.length === 0) {
+      const frequencies = [60, 230, 910, 3600, 14000];
+      filtersRef.current = frequencies.map(freq => {
+        const filter = audioContextRef.current.createBiquadFilter();
+        filter.type = 'peaking'; // Good general purpose EQ type
+        filter.frequency.value = freq;
+        filter.Q.value = 1.0;
+        filter.gain.value = 0;
+        return filter;
+      });
+
+      // Change first to low-shelf and last to high-shelf for better control
+      filtersRef.current[0].type = 'lowshelf';
+      filtersRef.current[4].type = 'highshelf';
+    }
+
     if (audioRef.current && !sourceRef.current) {
       try {
         sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-        sourceRef.current.connect(analyserRef.current);
+
+        // Chain: Source -> Filter 1 -> ... -> Filter 5 -> Analyser -> Destination
+        // Disconnect first to avoid loop or error on re-init
+        try { sourceRef.current.disconnect(); } catch (e) { }
+
+        let prevNode = sourceRef.current;
+
+        filtersRef.current.forEach(filter => {
+          prevNode.connect(filter);
+          prevNode = filter;
+        });
+
+        prevNode.connect(analyserRef.current);
         analyserRef.current.connect(audioContextRef.current.destination);
       } catch (e) {
         console.error("Audio context setup error", e);
@@ -96,6 +129,16 @@ function App() {
 
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
       audioContextRef.current.resume();
+    }
+  };
+
+  const handleUpdateEqGain = (index, value) => {
+    const newGains = [...eqGains];
+    newGains[index] = value;
+    setEqGains(newGains);
+
+    if (filtersRef.current[index]) {
+      filtersRef.current[index].gain.value = value;
     }
   };
 
@@ -134,12 +177,89 @@ function App() {
         // Load Playlists
         const savedPlaylists = await getAllPlaylists();
         setPlaylists(savedPlaylists);
+
+        // --- RESUME PLAYBACK LOGIC ---
+        const lastSongId = localStorage.getItem('lastPlayedSongId');
+        const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+
+        if (lastSongId && songsWithUrls.length > 0) {
+          const songToResume = songsWithUrls.find(s => s.id === Number(lastSongId));
+          if (songToResume) {
+            setCurrentSong(songToResume);
+            if (audioRef.current) {
+              audioRef.current.src = songToResume.src;
+              audioRef.current.currentTime = lastTime || 0;
+              setCurrentTime(lastTime || 0);
+            }
+          }
+        }
       } catch (error) {
         console.error("Failed to load data:", error);
       }
     };
     loadData();
   }, []);
+
+  // Save Playback State
+  useEffect(() => {
+    if (currentSong) {
+      localStorage.setItem('lastPlayedSongId', currentSong.id);
+    }
+  }, [currentSong]);
+
+  useEffect(() => {
+    // throttle saving time to avoid blasting localStorage
+    const interval = setInterval(() => {
+      if (isPlaying && audioRef.current) {
+        localStorage.setItem('lastPlayedTime', audioRef.current.currentTime);
+      }
+    }, 5000); // Save every 5 seconds
+    return () => clearInterval(interval);
+  }, [isPlaying]);
+
+
+  // --- SMART FADING LOGIC ---
+  const fadeOut = (callback) => {
+    if (!audioRef.current) return;
+    const fadeAudio = audioRef.current;
+    const startVolume = fadeAudio.volume;
+    const fadeDuration = 300; // ms
+    const fadeStep = 50; // ms
+    const stepValue = startVolume / (fadeDuration / fadeStep);
+
+    let currentStep = 0;
+    const fadeInterval = setInterval(() => {
+      currentStep++;
+      if (fadeAudio.volume > stepValue) {
+        fadeAudio.volume = Math.max(0, fadeAudio.volume - stepValue);
+      } else {
+        fadeAudio.volume = 0;
+        clearInterval(fadeInterval);
+        if (callback) callback();
+      }
+    }, fadeStep);
+  };
+
+  const fadeIn = () => {
+    if (!audioRef.current) return;
+    const fadeAudio = audioRef.current;
+    fadeAudio.volume = 0;
+    const targetVolume = isMuted ? 0 : volume;
+    const fadeDuration = 500; // ms
+    const fadeStep = 50; // ms
+    const stepValue = targetVolume / (fadeDuration / fadeStep);
+
+    let currentStep = 0;
+    const fadeInterval = setInterval(() => {
+      currentStep++;
+      if (fadeAudio.volume < targetVolume - stepValue) {
+        fadeAudio.volume += stepValue;
+      } else {
+        fadeAudio.volume = targetVolume;
+        clearInterval(fadeInterval);
+      }
+    }, fadeStep);
+  };
 
   const handleCreatePlaylist = async () => {
     const name = prompt("Enter playlist name:");
@@ -523,10 +643,36 @@ function App() {
   }, [isPlaying, volume, isMuted]); // Note: handlePlayPause, __handleSeek, toggleMute are likely stable or closured, check deps.
 
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      // Fade out then pause
+      fadeOut(() => {
+        if (audioRef.current) audioRef.current.pause();
+        setIsPlaying(false);
+      });
+    } else {
+      // Play then fade in
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          fadeIn();
+          setIsPlaying(true);
+          setupAudioContext(); // Ensure/resume context
+        }).catch(e => console.error(e));
+      }
+    }
   };
 
   const handleSongSelect = (song) => {
+    if (currentSong) {
+      // Fade out old song first
+      fadeOut(() => {
+        __playSong(song);
+      });
+    } else {
+      __playSong(song);
+    }
+  };
+
+  const __playSong = (song) => {
     if (currentSong) {
       setHistory(prev => {
         const newHistory = [currentSong, ...prev];
@@ -543,11 +689,18 @@ function App() {
     setCurrentSong(song);
     if (audioRef.current) {
       audioRef.current.src = song.src; // Use local blob URL
-    }
-    setIsPlaying(true);
-    // Auto-open lyrics sidebar ONLY on desktop
-    if (window.innerWidth >= 768) {
-      setShowLyrics(true);
+      audioRef.current.play().then(() => {
+        fadeIn(); // Fade in new song
+        setIsPlaying(true);
+        setupAudioContext();
+        // Auto-open lyrics sidebar ONLY on desktop
+        if (window.innerWidth >= 768) {
+          setShowLyrics(true);
+        }
+      }).catch(e => console.error("Error playing:", e));
+    } else {
+      setIsPlaying(true);
+      setShowLyrics(true); // Auto-open sidebar
     }
   };
 
@@ -639,31 +792,31 @@ function App() {
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                   {/* Featured Cards / "Good Evening" Style */}
-{
-    playlists.slice(0, 6).map(playlist => {
-        const firstSongId = playlist.songIds[0];
-        const firstSong = firstSongId ? songs.find(s => s.id === firstSongId) : null;
-        const cover = firstSong ? firstSong.cover : null;
+                  {
+                    playlists.slice(0, 6).map(playlist => {
+                      const firstSongId = playlist.songIds[0];
+                      const firstSong = firstSongId ? songs.find(s => s.id === firstSongId) : null;
+                      const cover = firstSong ? firstSong.cover : null;
 
-        return (
-            <div key={playlist.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
-                {cover && !cover.includes('placehold.co') ? (
-                    <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
-                ) : (
-                    <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
-                        <Music size={32} />
-                    </div>
-                )}
-                <div className="px-4 flex-1 font-bold truncate text-sm md:text-base">{playlist.name}</div>
+                      return (
+                        <div key={playlist.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
+                          {cover && !cover.includes('placehold.co') ? (
+                            <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
+                          ) : (
+                            <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
+                              <Music size={32} />
+                            </div>
+                          )}
+                          <div className="px-4 flex-1 font-bold truncate text-sm md:text-base">{playlist.name}</div>
 
-                {/* Play Button (Hover) */}
-                <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute right-4 shadow-xl bg-accent rounded-full p-3 flex items-center justify-center hover:scale-105">
-                    <Play fill="black" className="text-black" size={20} />
-                </div>
-            </div>
-        );
-    })
-}
+                          {/* Play Button (Hover) */}
+                          <div className="opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 absolute right-4 shadow-xl bg-accent rounded-full p-3 flex items-center justify-center hover:scale-105">
+                            <Play fill="black" className="text-black" size={20} />
+                          </div>
+                        </div>
+                      );
+                    })
+                  }
                 </div>
 
                 <h3 className="text-xl font-bold mb-4">Recommended for you</h3>
@@ -842,14 +995,24 @@ function App() {
             isMuted={isMuted}
             onToggleMute={toggleMute}
             repeatMode={repeatMode}
-            onToggleRepeat={toggleRepeat}
+            onToggleRepeat={() => setRepeatMode((prev) => (prev + 1) % 3)}
             onToggleLyrics={() => setShowLyrics(!showLyrics)}
             isLyricsOpen={showLyrics}
             isSleepTimerActive={isSleepTimerActive}
             onSetSleepTimer={handleSetSleepTimer}
-            onToggleLike={handleToggleLike}
+            onToggleLike={() => handleToggleLike(currentSong)}
             onToggleQueue={() => setCurrentView(prev => prev === 'queue' ? 'home' : 'queue')}
+            onToggleEqualizer={() => setShowEqualizer(!showEqualizer)}
           />
+
+          {/* Equalizer Modal */}
+          {showEqualizer && (
+            <Equalizer
+              gains={eqGains}
+              onUpdateGain={handleUpdateEqGain}
+              onClose={() => setShowEqualizer(false)}
+            />
+          )}
         </div>
       </div>
 
