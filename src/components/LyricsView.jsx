@@ -49,9 +49,9 @@ const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
 
     return (
         <div className="h-full w-full flex flex-col bg-bg-card text-white relative">
-            {/* Header / Close Button */}
-            <div className="flex justify-between items-center p-4 absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/50 to-transparent">
-                <span className="font-bold text-sm drop-shadow-md">Now Playing</span>
+            {/* Header / Close Button - Sticky & Solid */}
+            <div className="flex justify-between items-center p-4 bg-bg-card z-10 sticky top-0 border-b border-white/5">
+                <span className="font-bold text-sm text-text-secondary uppercase tracking-wider">Now Playing</span>
                 {onClose && (
                     <button
                         onClick={onClose}
@@ -63,7 +63,7 @@ const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-4 pt-14 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
                 {/* Cover Art */}
                 <div className="w-full aspect-square mb-6 shadow-2xl rounded-lg overflow-hidden relative group">
                     {song.cover ? (
@@ -135,8 +135,8 @@ const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
                                                     key={index}
                                                     ref={isActive ? activeLineRef : null}
                                                     className={`transition-all duration-300 ${isActive
-                                                            ? 'text-white text-2xl font-bold opacity-100 scale-105 origin-left'
-                                                            : 'text-gray-500 text-lg opacity-60'
+                                                        ? 'text-white text-2xl font-bold opacity-100 scale-105 origin-left'
+                                                        : 'text-gray-500 text-lg opacity-60'
                                                         }`}
                                                 >
                                                     {line.text}
