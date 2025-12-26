@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ } from 'lucide-react';
+import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ, Clock3 } from 'lucide-react';
 
 const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit }) => {
     const [activeMenu, setActiveMenu] = useState(null);
@@ -18,19 +18,21 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
     return (
         <div className="flex flex-col pb-24">
             {/* Header & Sort */}
-            <div className="flex items-center justify-between mb-4 px-4 sticky top-0 bg-bg-primary z-30 py-2 border-b border-bg-highlight">
-                <div className="text-text-secondary text-sm font-bold uppercase tracking-wider"># Title</div>
-
-                <div className="relative">
+            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-2 sticky top-0 bg-bg-primary z-30 border-b border-bg-highlight mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
+                <div className="w-8 text-center">#</div>
+                <div>Title</div>
+                <div>Artist</div>
+                <div className="text-right pr-4">DURATION</div>
+                <div className="relative flex justify-end">
                     <button
                         onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); }}
-                        className="flex items-center gap-2 text-text-secondary hover:text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 px-2 py-1 rounded transition"
+                        className="flex items-center gap-2 hover:text-white hover:bg-white/10 px-2 py-1 rounded transition"
                     >
-                        Sort By <ArrowDownAZ size={16} />
+                        Sort <ArrowDownAZ size={16} />
                     </button>
 
                     {showSortMenu && (
-                        <div className="absolute right-0 top-full mt-2 bg-[#282828] border border-white/10 rounded-lg shadow-xl py-1 w-48 z-50">
+                        <div className="absolute right-0 top-full mt-2 bg-[#282828] border border-white/10 rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
                             <button onClick={(e) => { e.stopPropagation(); onSort && onSort('date'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm">Date Added</button>
                             <button onClick={(e) => { e.stopPropagation(); onSort && onSort('title'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm">Title (A-Z)</button>
                         </div>
@@ -82,7 +84,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                             {/* Options Menu Button column */}
                             <div className="relative flex justify-center items-center gap-1">
                                 <button
-                                    className="p-2 rounded-full hover:text-white hover:bg-bg-highlight text-text-secondary z-20 opacity-0 group-hover:opacity-100 transition"
+                                    className="p-2 rounded-full hover:text-white hover:bg-bg-highlight text-text-secondary z-20 transition"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAddToPlaylist && onAddToPlaylist(song.id);
@@ -92,7 +94,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                                     <Plus size={20} />
                                 </button>
                                 <button
-                                    className={`p-2 rounded-full hover:text-white hover:bg-bg-highlight z-20 ${activeMenu === song.id ? 'text-white opacity-100' : 'text-text-secondary opacity-0 group-hover:opacity-100'}`}
+                                    className={`p-2 rounded-full hover:text-white hover:bg-bg-highlight z-20 transition ${activeMenu === song.id ? 'text-white' : 'text-text-secondary'}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setActiveMenu(activeMenu === song.id ? null : song.id);
