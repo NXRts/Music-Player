@@ -1042,7 +1042,7 @@ function App() {
 
           {/* Lyrics Panel - Hide in Visualizer to avoid duplicate panels */}
           {showLyrics && currentView !== 'visualizer' && (
-            <div className="absolute inset-x-0 bottom-24 top-0 md:static md:w-1/4 md:min-w-[250px] border-l border-bg-highlight bg-bg-card z-40 flex-shrink-0 transition-all duration-300">
+            <div className="absolute inset-x-0 bottom-24 top-0 md:static md:w-1/4 md:min-w-[250px] border-l border-white/10 bg-[#121212] z-50 flex-shrink-0 transition-all duration-300">
               <LyricsView
                 song={currentSong}
                 onClose={() => setShowLyrics(false)}
