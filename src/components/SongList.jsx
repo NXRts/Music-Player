@@ -1,15 +1,15 @@
-
 import React, { useState } from 'react';
-import { Music, MoreHorizontal, ListPlus } from 'lucide-react';
+import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAll, onAddToPlaylist, onSort, onAddToQueue, onPlayNext }) => {
-    const [activeMenuId, setActiveMenuId] = useState(null);
-    const [showMenu, setShowMenu] = useState(false);
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit }) => {
+    const [activeMenu, setActiveMenu] = useState(null);
+    const [showSortMenu, setShowSortMenu] = useState(false);
 
     // Close menu when clicking outside
     React.useEffect(() => {
         const handleClickOutside = () => {
-            setActiveMenuId(null);
+            setActiveMenu(null);
+            setShowSortMenu(false);
         };
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
@@ -17,49 +17,23 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
 
     return (
         <div className="flex flex-col pb-24">
-            {/* Header Row */}
-            <div className="grid grid-cols-[auto_1fr_1fr_1fr_auto] gap-4 px-4 py-2 border-b border-bg-highlight text-text-secondary text-sm uppercase tracking-wider bg-bg-primary sticky top-0 z-30">
-                <div className="w-8 text-center">#</div>
-                <div>Title</div>
-                <div>Artist</div>
-                <div className="text-right pr-4">Duration</div>
-                <div className="w-8 flex items-center justify-center relative">
+            {/* Header & Sort */}
+            <div className="flex items-center justify-between mb-4 px-4 sticky top-0 bg-bg-primary z-30 py-2 border-b border-bg-highlight">
+                <div className="text-text-secondary text-sm font-bold uppercase tracking-wider"># Title</div>
+
+                <div className="relative">
                     <button
-                        className="text-text-secondary hover:text-white p-1 rounded-full hover:bg-bg-highlight transition"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowMenu(prev => !prev);
-                        }}
-                        title="Options"
+                        onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); }}
+                        className="flex items-center gap-2 text-text-secondary hover:text-white text-sm font-bold uppercase tracking-wider hover:bg-white/10 px-2 py-1 rounded transition"
                     >
-                        <MoreHorizontal size={20} />
+                        Sort By <ArrowDownAZ size={16} />
                     </button>
 
-                    {showMenu && (
-                        <>
-                            <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-                            <div className="absolute right-0 top-full mt-2 border border-gray-700 bg-neutral-900 rounded shadow-2xl z-[100] w-48 py-1">
-                                <button
-                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
-                                    onClick={() => { onSort && onSort('title'); setShowMenu(false); }}
-                                >
-                                    Sort by Title (A-Z)
-                                </button>
-                                <button
-                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-white text-sm"
-                                    onClick={() => { onSort && onSort('date'); setShowMenu(false); }}
-                                >
-                                    Sort by Date Added
-                                </button>
-                                <div className="border-t border-bg-highlight my-1"></div>
-                                <button
-                                    className="w-full text-left px-4 py-2 hover:bg-red-500 hover:text-white text-text-secondary text-sm transition"
-                                    onClick={() => { onClearAll && onClearAll(); setShowMenu(false); }}
-                                >
-                                    Clear All Songs
-                                </button>
-                            </div>
-                        </>
+                    {showSortMenu && (
+                        <div className="absolute right-0 top-full mt-2 bg-[#282828] border border-white/10 rounded-lg shadow-xl py-1 w-48 z-50">
+                            <button onClick={(e) => { e.stopPropagation(); onSort && onSort('date'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm">Date Added</button>
+                            <button onClick={(e) => { e.stopPropagation(); onSort && onSort('title'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm">Title (A-Z)</button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -75,8 +49,10 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                             className={`grid grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-white'}`}
                         >
                             <div className="w-8 flex items-center justify-center relative">
-                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'} `}>{isCurrent && isPlaying ? '' : index + 1}</span>
-                                <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-white`}>▶</span>
+                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
+                                <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-white`}>
+                                    {isCurrent && isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
+                                </span>
                                 {isCurrent && isPlaying && (
                                     <img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" className="absolute w-4 h-4" alt="playing" />
                                 )}
@@ -88,7 +64,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                                         <Music size={20} />
                                     </div>
                                 ) : (
-                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm" />
+                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm object-cover" />
                                 )}
                                 <div className="flex flex-col truncate">
                                     <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-white'}`}>{song.title}</span>
@@ -106,52 +82,62 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onClearAl
                             {/* Options Menu Button column */}
                             <div className="relative flex justify-center items-center gap-1">
                                 <button
-                                    className="p-2 rounded-full hover:text-white hover:bg-bg-highlight text-text-secondary z-20"
+                                    className="p-2 rounded-full hover:text-white hover:bg-bg-highlight text-text-secondary z-20 opacity-0 group-hover:opacity-100 transition"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAddToPlaylist && onAddToPlaylist(song.id);
                                     }}
                                     title="Add to Playlist"
                                 >
-                                    <ListPlus size={20} />
+                                    <Plus size={20} />
                                 </button>
                                 <button
-                                    className={`p-2 rounded-full hover:text-white hover:bg-bg-highlight z-20 ${activeMenuId === song.id ? 'text-white' : 'text-text-secondary'}`}
+                                    className={`p-2 rounded-full hover:text-white hover:bg-bg-highlight z-20 ${activeMenu === song.id ? 'text-white opacity-100' : 'text-text-secondary opacity-0 group-hover:opacity-100'}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setActiveMenuId(activeMenuId === song.id ? null : song.id);
+                                        setActiveMenu(activeMenu === song.id ? null : song.id);
                                     }}
                                 >
                                     <MoreHorizontal size={20} />
                                 </button>
 
                                 {/* Dropdown Menu */}
-                                {activeMenuId === song.id && (
-                                    <div className="absolute right-0 top-10 w-48 bg-neutral-900 rounded shadow-xl z-50 py-1 border border-gray-700 animate-fade-in">
+                                {activeMenu === song.id && (
+                                    <div className="absolute right-0 top-10 w-48 bg-[#282828] rounded-lg shadow-xl z-50 py-1 border border-white/10 animate-fade-in">
                                         <button
-                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
-                                            onClick={(e) => { e.stopPropagation(); onPlayNext(song.id); setActiveMenuId(null); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                                            onClick={(e) => { e.stopPropagation(); onPlayNext(song.id); setActiveMenu(null); }}
                                         >
-                                            Play Next
+                                            <Play size={14} /> Play Next
                                         </button>
                                         <button
-                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
-                                            onClick={(e) => { e.stopPropagation(); onAddToQueue(song.id); setActiveMenuId(null); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                                            onClick={(e) => { e.stopPropagation(); onAddToQueue(song.id); setActiveMenu(null); }}
                                         >
-                                            Add to Queue
+                                            <ListPlus size={14} /> Add to Queue
                                         </button>
+
+                                        {onEdit && (
+                                            <button
+                                                className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                                                onClick={(e) => { e.stopPropagation(); onEdit(song); setActiveMenu(null); }}
+                                            >
+                                                <Pencil size={14} /> Edit Info
+                                            </button>
+                                        )}
+
                                         <button
-                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3e3e3e]"
-                                            onClick={(e) => { e.stopPropagation(); onAddToPlaylist(song.id); setActiveMenuId(null); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 flex items-center gap-2"
+                                            onClick={(e) => { e.stopPropagation(); onAddToPlaylist(song.id); setActiveMenu(null); }}
                                         >
-                                            Add to Playlist
+                                            <Plus size={14} /> Add to Playlist
                                         </button>
-                                        <div className="border-t border-[#3e3e3e] my-1"></div>
+                                        <div className="border-t border-white/10 my-1"></div>
                                         <button
-                                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#3e3e3e]"
-                                            onClick={(e) => { e.stopPropagation(); onDelete(song.id); setActiveMenuId(null); }}
+                                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-white/10 flex items-center gap-2"
+                                            onClick={(e) => { e.stopPropagation(); onDelete(song.id); setActiveMenu(null); }}
                                         >
-                                            Delete
+                                            <Trash2 size={14} /> Delete
                                         </button>
                                     </div>
                                 )}

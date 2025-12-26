@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import EditSongModal from './components/EditSongModal';
+
 import PlayerControls from './components/PlayerControls';
 import SongList from './components/SongList';
 import Sidebar from './components/Sidebar';
@@ -40,11 +42,45 @@ function App() {
   const [showEqualizer, setShowEqualizer] = useState(false);
   const [eqGains, setEqGains] = useState([0, 0, 0, 0, 0]);
   const filtersRef = useRef([]);
-
-  // ... (existing states)
+  const [isDragging, setIsDragging] = useState(false);
+  const [editingSong, setEditingSong] = useState(null);
   const sleepTimerRef = useRef(null);
 
-  // ... (existing refs)
+  const handleUpdateSongData = async (songId, newData) => {
+    // Update local state
+    const updatedSongs = songs.map(s => s.id === songId ? { ...s, ...newData } : s);
+    setSongs(updatedSongs);
+
+    // Update current song if it's the one being edited
+    if (currentSong && currentSong.id === songId) {
+      setCurrentSong(prev => ({ ...prev, ...newData }));
+    }
+
+    // Save to DB
+    const songToUpdate = updatedSongs.find(s => s.id === songId);
+    if (songToUpdate) {
+      await saveSong(songToUpdate);
+    }
+
+    setEditingSong(null);
+  };
+
+  const handleSaveLyrics = async (songId, newLyrics) => {
+    // Update local state
+    const updatedSongs = songs.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s);
+    setSongs(updatedSongs);
+
+    // Update current song if it's the one being edited
+    if (currentSong && currentSong.id === songId) {
+      setCurrentSong(prev => ({ ...prev, lyrics: newLyrics }));
+    }
+
+    // Save to DB
+    const songToUpdate = updatedSongs.find(s => s.id === songId);
+    if (songToUpdate) {
+      await saveSong(songToUpdate);
+    }
+  };
 
   const handleSetSleepTimer = (minutes) => {
     // Clear existing timer
@@ -55,19 +91,37 @@ function App() {
 
     if (minutes === 0) {
       setIsSleepTimerActive(false);
-      alert("Sleep timer turned off");
       return;
     }
 
     setIsSleepTimerActive(true);
-    alert(`Sleep timer set to ${minutes} minutes`);
 
     sleepTimerRef.current = setTimeout(() => {
       setIsPlaying(false);
       setIsSleepTimerActive(false);
       sleepTimerRef.current = null;
-      // Optional: alert or toast here? acts might disrupt sleep. Better just stop.
     }, minutes * 60 * 1000);
+  };
+
+  // Drag & Drop Handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('audio/'));
+    if (files.length > 0) {
+      await handleFileUpload({ target: { files } });
+    }
   };
 
   const fileInputRef = useRef(null);
@@ -142,7 +196,7 @@ function App() {
     }
   };
 
-  // ... (keeping existing refs)
+  // ... (content remains same, no changes needed here if analysis holds) (keeping existing refs)
 
   // ...
 
@@ -568,22 +622,7 @@ function App() {
     }
   };
 
-  const handleSaveLyrics = async (songId, newLyrics) => {
-    // Update local state
-    const updatedSongs = songs.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s);
-    setSongs(updatedSongs);
 
-    // Update current song if it's the one being edited
-    if (currentSong && currentSong.id === songId) {
-      setCurrentSong(prev => ({ ...prev, lyrics: newLyrics }));
-    }
-
-    // Save to DB
-    const songToUpdate = updatedSongs.find(s => s.id === songId);
-    if (songToUpdate) {
-      await saveSong(songToUpdate);
-    }
-  };
 
   const toggleMute = () => {
     if (isMuted) {
@@ -747,7 +786,24 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen bg-primary text-white overflow-hidden">
+    <div
+      className="flex h-screen bg-primary text-white overflow-hidden relative"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag Overlay */}
+      {isDragging && (
+        <div
+          className="absolute inset-0 bg-accent/20 z-[100] border-4 border-dashed border-accent flex items-center justify-center pointer-events-none backdrop-blur-sm"
+          onDragLeave={handleDragLeave}
+        >
+          <div className="text-4xl font-bold text-accent animate-pulse flex flex-col items-center gap-4">
+            <Upload size={64} />
+            Drop MP3s to Upload
+          </div>
+        </div>
+      )}
+
       <Sidebar
         currentView={currentView}
         onNavigate={(view) => { setCurrentView(view); setIsMobileMenuOpen(false); }}
@@ -965,6 +1021,15 @@ function App() {
             )}
           </div>
 
+          {/* Edit Song Modal */}
+          {editingSong && (
+            <EditSongModal
+              song={editingSong}
+              onSave={handleUpdateSongData}
+              onClose={() => setEditingSong(null)}
+            />
+          )}
+
           {/* Lyrics Panel - Hide in Visualizer to avoid duplicate panels */}
           {showLyrics && currentView !== 'visualizer' && (
             <div className="absolute inset-x-0 bottom-24 top-0 md:static md:w-1/4 md:min-w-[250px] border-l border-bg-highlight bg-bg-card z-40 flex-shrink-0 transition-all duration-300">
@@ -1011,6 +1076,15 @@ function App() {
               gains={eqGains}
               onUpdateGain={handleUpdateEqGain}
               onClose={() => setShowEqualizer(false)}
+            />
+          )}
+
+          {/* Edit Song Modal */}
+          {editingSong && (
+            <EditSongModal
+              song={editingSong}
+              onSave={handleUpdateSongData}
+              onClose={() => setEditingSong(null)}
             />
           )}
         </div>
