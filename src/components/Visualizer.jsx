@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import LyricsView from './LyricsView';
 
-const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics }) => {
+const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics, currentTime }) => {
     const canvasRef = useRef(null);
     const animationRef = useRef(null);
 
@@ -92,6 +92,7 @@ const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics }) => {
                     <LyricsView
                         song={currentSong}
                         onSaveLyrics={onSaveLyrics}
+                        currentTime={currentTime}
                     // No onClose prop passed, so button will be hidden
                     />
                 </div>

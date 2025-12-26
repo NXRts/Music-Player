@@ -1017,6 +1017,7 @@ function App() {
                 isPlaying={isPlaying}
                 currentSong={currentSong}
                 onSaveLyrics={handleSaveLyrics}
+                currentTime={currentTime}
               />
             )}
           </div>

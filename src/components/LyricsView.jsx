@@ -1,18 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Save, Edit2, X } from 'lucide-react';
+import { parseLRC } from '../utils/lrcParser';
 
-const LyricsView = ({ song, onClose, onSaveLyrics }) => {
+const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [lyrics, setLyrics] = useState('');
+    const [rawLyrics, setRawLyrics] = useState('');
+    const activeLineRef = useRef(null);
 
     useEffect(() => {
         if (song) {
-            setLyrics(song.lyrics || '');
+            setRawLyrics(song.lyrics || '');
         }
     }, [song]);
 
+    const parsedLyrics = useMemo(() => {
+        const parsed = parseLRC(rawLyrics);
+        return parsed.length > 0 ? parsed : null;
+    }, [rawLyrics]);
+
+    const activeIndex = useMemo(() => {
+        if (!parsedLyrics) return -1;
+        // Find the index of the line that is current
+        // It's the last line where line.time <= currentTime
+        let active = -1;
+        for (let i = 0; i < parsedLyrics.length; i++) {
+            if (parsedLyrics[i].time <= currentTime) {
+                active = i;
+            } else {
+                break;
+            }
+        }
+        return active;
+    }, [parsedLyrics, currentTime]);
+
+    // Auto-scroll to active line
+    useEffect(() => {
+        if (activeLineRef.current) {
+            activeLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [activeIndex]);
+
     const handleSave = () => {
-        onSaveLyrics(song.id, lyrics);
+        onSaveLyrics(song.id, rawLyrics);
         setIsEditing(false);
     };
 
@@ -57,7 +86,7 @@ const LyricsView = ({ song, onClose, onSaveLyrics }) => {
                 </div>
 
                 {/* Lyrics Card */}
-                <div className="bg-[#1f1f1f] rounded-xl p-4 md:p-6 shadow-inner relative overflow-hidden group">
+                <div className="bg-[#1f1f1f] rounded-xl p-4 md:p-6 shadow-inner relative overflow-hidden group min-h-[200px]">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-lg">Lyrics</h3>
                         {!isEditing && (
@@ -74,10 +103,10 @@ const LyricsView = ({ song, onClose, onSaveLyrics }) => {
                     {isEditing ? (
                         <div className="flex flex-col gap-4">
                             <textarea
-                                className="w-full bg-[#2a2a2a] text-white p-4 rounded-lg text-base leading-relaxed focus:outline-none focus:ring-1 focus:ring-white resize-none placeholder-gray-500 min-h-[300px]"
-                                value={lyrics}
-                                onChange={(e) => setLyrics(e.target.value)}
-                                placeholder="Paste lyrics here..."
+                                className="w-full bg-[#2a2a2a] text-white p-4 rounded-lg text-base leading-relaxed focus:outline-none focus:ring-1 focus:ring-white resize-none placeholder-gray-500 min-h-[300px] font-mono"
+                                value={rawLyrics}
+                                onChange={(e) => setRawLyrics(e.target.value)}
+                                placeholder="Paste lyrics here... Use [mm:ss.xx] format for sync."
                             />
                             <div className="flex gap-2 justify-end">
                                 <button
@@ -95,8 +124,30 @@ const LyricsView = ({ song, onClose, onSaveLyrics }) => {
                             </div>
                         </div>
                     ) : (
-                        <div className="text-gray-300 text-lg font-medium leading-loose whitespace-pre-line">
-                            {lyrics || (
+                        <div className="text-gray-300 text-lg font-medium leading-loose">
+                            {rawLyrics ? (
+                                parsedLyrics ? (
+                                    <div className="flex flex-col gap-4 py-4">
+                                        {parsedLyrics.map((line, index) => {
+                                            const isActive = index === activeIndex;
+                                            return (
+                                                <p
+                                                    key={index}
+                                                    ref={isActive ? activeLineRef : null}
+                                                    className={`transition-all duration-300 ${isActive
+                                                            ? 'text-white text-2xl font-bold opacity-100 scale-105 origin-left'
+                                                            : 'text-gray-500 text-lg opacity-60'
+                                                        }`}
+                                                >
+                                                    {line.text}
+                                                </p>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="whitespace-pre-line">{rawLyrics}</div>
+                                )
+                            ) : (
                                 <p className="opacity-50 italic">No lyrics available.</p>
                             )}
                         </div>
