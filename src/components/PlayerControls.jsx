@@ -27,30 +27,27 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
     };
 
     return (
-        <div className="flex items-center justify-between w-full h-full text-white">
+        <div className="flex items-center justify-between w-full h-full text-white px-2 md:px-0">
             {/* Left Info */}
-            <div className="flex items-center gap-4 w-1/4 min-w-[200px]">
+            <div className="flex items-center gap-3 flex-1 md:w-1/4 min-w-0 pr-2">
                 {currentSong ? (
                     <>
-                        <div className="relative group">
+                        <div className="relative group flex-shrink-0">
                             {currentSong.cover && !currentSong.cover.includes('placehold.co') ? (
-                                <img src={currentSong.cover} alt={currentSong.title} className="w-14 h-14 object-cover rounded shadow-md" />
+                                <img src={currentSong.cover} alt={currentSong.title} className="w-12 h-12 md:w-14 md:h-14 object-cover rounded shadow-md" />
                             ) : (
-                                <div className="w-14 h-14 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-md">
+                                <div className="w-12 h-12 md:w-14 md:h-14 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-md">
                                     <Music size={24} />
                                 </div>
                             )}
-                            <button className="absolute top-0 right-0 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition">
-                                {/* Expand arrow logic could go here */}
-                            </button>
                         </div>
-                        <div className="overflow-hidden">
-                            <div className="font-bold hover:underline cursor-pointer truncate">{currentSong.title}</div>
+                        <div className="overflow-hidden min-w-0">
+                            <div className="font-bold hover:underline cursor-pointer truncate text-sm md:text-base">{currentSong.title}</div>
                             <div className="text-xs text-text-secondary hover:underline cursor-pointer truncate">{currentSong.artist}</div>
                         </div>
                         <button
                             onClick={onToggleLike}
-                            className={`hover:text-white transition ${currentSong.isLiked ? 'text-accent' : 'text-text-secondary'}`}
+                            className={`hover:text-white transition ${currentSong.isLiked ? 'text-accent' : 'text-text-secondary'} hidden sm:block`}
                         >
                             <Heart size={18} fill={currentSong.isLiked ? "currentColor" : "none"} />
                         </button>
@@ -61,7 +58,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             </div>
 
             {/* Center Controls */}
-            <div className="flex flex-col items-center w-1/2 max-w-[600px]">
+            <div className="flex flex-col items-center w-auto md:w-1/2 max-w-[600px]">
                 <div className="flex items-center gap-6 mb-2">
                     <button
                         onClick={onToggleShuffle}
@@ -112,7 +109,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             </div>
 
             {/* Right Controls */}
-            <div className="flex items-center gap-2 w-1/4 justify-end min-w-[200px]">
+            <div className="hidden md:flex items-center gap-2 w-1/4 justify-end min-w-[200px]">
                 {/* Sleep Timer */}
                 <div className="relative" ref={sleepMenuRef}>
                     <button
