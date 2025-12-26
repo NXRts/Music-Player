@@ -107,3 +107,46 @@ export const deletePlaylist = async (id) => {
         request.onerror = (event) => reject(event.target.error);
     });
 };
+
+// Backup & Restore
+export const exportData = async () => {
+    try {
+        const songs = await getAllSongs();
+        const playlists = await getAllPlaylists();
+        return {
+            version: 1,
+            timestamp: new Date().toISOString(),
+            songs,
+            playlists
+        };
+    } catch (error) {
+        console.error("Export failed:", error);
+        throw error;
+    }
+};
+
+export const importData = async (jsonData) => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME, PLAYLIST_STORE_NAME], 'readwrite');
+        const songStore = transaction.objectStore(STORE_NAME);
+        const playlistStore = transaction.objectStore(PLAYLIST_STORE_NAME);
+
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = (event) => reject(event.target.error);
+
+        // Clear existing data
+        songStore.clear();
+        playlistStore.clear();
+
+        // Restore Songs
+        if (jsonData.songs && Array.isArray(jsonData.songs)) {
+            jsonData.songs.forEach(song => songStore.put(song));
+        }
+
+        // Restore Playlists
+        if (jsonData.playlists && Array.isArray(jsonData.playlists)) {
+            jsonData.playlists.forEach(playlist => playlistStore.put(playlist));
+        }
+    });
+};

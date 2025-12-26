@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import EditSongModal from './components/EditSongModal';
+import SettingsModal from './components/SettingsModal';
 
 import PlayerControls from './components/PlayerControls';
 import SongList from './components/SongList';
@@ -44,6 +45,7 @@ function App() {
   const filtersRef = useRef([]);
   const [isDragging, setIsDragging] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   const sleepTimerRef = useRef(null);
 
   const handleUpdateSongData = async (songId, newData) => {
@@ -209,49 +211,53 @@ function App() {
   }, []);
 
   // Load songs & playlists from DB on mount
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load Songs
-        const savedSongs = await getAllSongs();
-        const songsWithUrls = savedSongs.map(song => {
-          try {
-            return {
-              ...song,
-              src: song.file ? URL.createObjectURL(song.file) : ''
-            };
-          } catch (e) {
-            console.error("Error creating URL for song:", song, e);
-            return null;
-          }
-        }).filter(s => s !== null);
+  // Load songs & playlists from DB on mount
+  const refreshLibrary = async () => {
+    try {
+      // Load Songs
+      const savedSongs = await getAllSongs();
+      const songsWithUrls = savedSongs.map(song => {
+        try {
+          return {
+            ...song,
+            src: song.file ? URL.createObjectURL(song.file) : ''
+          };
+        } catch (e) {
+          console.error("Error creating URL for song:", song, e);
+          return null;
+        }
+      }).filter(s => s !== null);
 
-        setSongs(songsWithUrls);
+      setSongs(songsWithUrls);
 
-        // Load Playlists
-        const savedPlaylists = await getAllPlaylists();
-        setPlaylists(savedPlaylists);
+      // Load Playlists
+      const savedPlaylists = await getAllPlaylists();
+      setPlaylists(savedPlaylists);
 
-        // --- RESUME PLAYBACK LOGIC ---
-        const lastSongId = localStorage.getItem('lastPlayedSongId');
-        const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+      // --- RESUME PLAYBACK LOGIC ---
+      const lastSongId = localStorage.getItem('lastPlayedSongId');
+      const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
 
-        if (lastSongId && songsWithUrls.length > 0) {
-          const songToResume = songsWithUrls.find(s => s.id === Number(lastSongId));
-          if (songToResume) {
-            setCurrentSong(songToResume);
-            if (audioRef.current) {
-              audioRef.current.src = songToResume.src;
-              audioRef.current.currentTime = lastTime || 0;
-              setCurrentTime(lastTime || 0);
-            }
+      if (lastSongId && songsWithUrls.length > 0) {
+        // Need to check if currentSong is already set, or just set it if null?
+        // Since this runs on mount/restore, likely better to set it.
+        const songToResume = songsWithUrls.find(s => s.id === (Number(lastSongId) || lastSongId)); // weak match
+        if (songToResume && !currentSong) {
+          setCurrentSong(songToResume);
+          if (audioRef.current) {
+            audioRef.current.src = songToResume.src;
+            audioRef.current.currentTime = lastTime || 0;
+            setCurrentTime(lastTime || 0);
           }
         }
-      } catch (error) {
-        console.error("Failed to load data:", error);
       }
-    };
-    loadData();
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
+  };
+
+  useEffect(() => {
+    refreshLibrary();
   }, []);
 
   // Save Playback State
@@ -811,10 +817,13 @@ function App() {
         onCreatePlaylist={handleCreatePlaylist}
         isMobileOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        onOpenSettings={() => { setShowSettings(true); setIsMobileMenuOpen(false); }}
       />
 
       <div className="flex-1 flex flex-col relative w-full">
-        <Header onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
+        <Header
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+        />
 
         <main className="flex-1 flex overflow-hidden relative">
           <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary">
@@ -1101,6 +1110,17 @@ function App() {
       />
 
 
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onDataRestored={() => {
+            refreshLibrary();
+            showToast('Library Restored Successfully');
+          }}
+        />
+      )}
 
       {/* Playlist Selector Modal */}
       {showPlaylistSelector && (
