@@ -120,25 +120,27 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         className={`hover:text-white transition p-2 rounded-full hover:bg-white/10 ${isSleepTimerActive ? 'text-accent' : 'text-text-secondary'}`}
                         title="Sleep Timer"
                     >
-                        <Moon size={18} fill={isSleepTimerActive ? "currentColor" : "none"} />
+                        <Moon size={20} fill={isSleepTimerActive ? "currentColor" : "none"} />
                     </button>
                     {showSleepMenu && (
-                        <div className="absolute bottom-12 right-0 bg-bg-card border border-bg-highlight rounded-md shadow-xl py-1 w-32 z-50">
-                            {[5, 10, 15, 30, 45, 60].map(min => (
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-[#282828] border border-white/10 rounded-lg shadow-2xl py-2 w-40 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            <div className="text-xs font-bold text-text-secondary px-4 py-2 uppercase tracking-wider">Sleep Timer</div>
+                            {[5, 15, 30, 45, 60].map((min) => (
                                 <button
                                     key={min}
-                                    className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-text-primary text-sm"
+                                    className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm transition-colors flex items-center justify-between group"
                                     onClick={() => { onSetSleepTimer(min); setShowSleepMenu(false); }}
                                 >
-                                    {min} min
+                                    <span>{min} Minutes</span>
+                                    {isSleepTimerActive && min === 0 && <span className="w-2 h-2 rounded-full bg-accent"></span>}
                                 </button>
                             ))}
-                            <div className="border-t border-gray-700 my-1"></div>
+                            <div className="border-t border-white/10 my-1"></div>
                             <button
-                                className="w-full text-left px-4 py-2 hover:bg-bg-highlight text-red-500 text-sm"
+                                className="w-full text-left px-4 py-2 hover:bg-white/10 text-red-400 hover:text-red-300 text-sm transition-colors font-medium"
                                 onClick={() => { onSetSleepTimer(0); setShowSleepMenu(false); }}
                             >
-                                Turn Off
+                                Turn Off Timer
                             </button>
                         </div>
                     )}
