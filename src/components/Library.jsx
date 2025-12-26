@@ -15,10 +15,6 @@ const YourLibrary = ({ playlists, onCreatePlaylist, onSelectPlaylist, onDeletePl
                 </button>
             </div>
 
-            <div className="flex gap-4 mb-6">
-                <span className="px-4 py-2 bg-white text-black rounded-full text-sm font-bold cursor-pointer transition">Playlists</span>
-            </div>
-
             {playlists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-center text-text-secondary">
                     <div className="mb-4 bg-bg-highlight p-6 rounded-full">
