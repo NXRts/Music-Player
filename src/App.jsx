@@ -791,6 +791,50 @@ function App() {
     }
   };
 
+  // --- MEDIA SESSION API ---
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    if (currentSong) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.title,
+        artist: currentSong.artist || 'Unknown Artist',
+        album: 'Music Player',
+        artwork: [
+          { src: currentSong.cover && !currentSong.cover.includes('placehold.co') ? currentSong.cover : 'https://placehold.co/512x512/333/fff?text=Music', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+    }
+
+    navigator.mediaSession.setActionHandler('play', () => {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          fadeIn();
+          setIsPlaying(true);
+          setupAudioContext();
+        }).catch(console.error);
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('pause', () => {
+      setIsPlaying(false);
+      if (audioRef.current) audioRef.current.pause();
+    });
+
+    navigator.mediaSession.setActionHandler('previoustrack', skipPrev);
+    navigator.mediaSession.setActionHandler('nexttrack', skipNext);
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+      if (details.seekTime !== undefined && audioRef.current) {
+        audioRef.current.currentTime = details.seekTime;
+        setCurrentTime(details.seekTime);
+      }
+    });
+
+    return () => {
+      // Optional: clear handlers on unmount? usually not needed for single page app
+    };
+  }, [currentSong, isPlaying, skipNext, skipPrev]);
+
   return (
     <div
       className="flex h-screen bg-primary text-white overflow-hidden relative"
