@@ -29,7 +29,7 @@ export const getSongMetadata = (file) => {
     return new Promise((resolve) => {
         jsmediatags.read(file, {
             onSuccess: (tag) => {
-                const { title, artist, picture } = tag.tags;
+                const { title, artist, picture, album } = tag.tags;
                 let coverUrl = null;
 
                 if (picture) {
@@ -44,6 +44,7 @@ export const getSongMetadata = (file) => {
                 resolve({
                     title: title || file.name.replace(/\.[^/.]+$/, ""),
                     artist: artist || "Unknown Artist",
+                    album: album || "Unknown Album",
                     cover: coverUrl
                 });
             },

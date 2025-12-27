@@ -404,6 +404,7 @@ function App() {
         id,
         title: metadata.title || titleToCheck,
         artist: metadata.artist || 'Unknown Artist',
+        album: metadata.album || 'Unknown Album',
         duration: formattedDuration,
         cover: metadata.cover || 'https://placehold.co/300x300/333333/ffffff?text=MP3',
         file: file, // Store actual blob in DB
@@ -949,9 +950,13 @@ function App() {
             {currentView === 'library' && (
               <YourLibrary
                 playlists={playlists}
+                songs={songs}
+                onSelect={handleSongSelect}
                 onCreatePlaylist={handleCreatePlaylist}
                 onSelectPlaylist={handleSelectPlaylist}
                 onDeletePlaylist={handleDeletePlaylist}
+                currentSong={currentSong}
+                isPlaying={isPlaying}
               />
             )}
 
