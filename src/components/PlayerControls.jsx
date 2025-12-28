@@ -101,7 +101,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         onChange={(e) => onSeek(parseFloat(e.target.value))}
                         className="flex-1 h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-110 transition-all group"
                         style={{
-                            backgroundImage: `linear-gradient(to right, var(--color-text-primary) ${(currentTime / (duration || 1)) * 100}%, var(--color-bg-highlight) ${(currentTime / (duration || 1)) * 100}%)`
+                            backgroundImage: `linear-gradient(to right, var(--color-text-primary) ${(currentTime / (duration || 1)) * 100}%, var(--color-border-subtle) ${(currentTime / (duration || 1)) * 100}%)`
                         }}
                     />
                     <span>{formatTime(duration)}</span>
@@ -181,7 +181,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                             onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
                             className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full transition-all"
                             style={{
-                                backgroundImage: `linear-gradient(to right, ${isMuted ? 'var(--color-text-secondary)' : 'var(--color-accent)'} ${(isMuted ? 0 : volume) * 100}%, var(--color-bg-highlight) ${(isMuted ? 0 : volume) * 100}%)`
+                                backgroundImage: `linear-gradient(to right, ${isMuted ? 'var(--color-text-secondary)' : 'var(--color-text-primary)'} ${(isMuted ? 0 : volume) * 100}%, var(--color-border-subtle) ${(isMuted ? 0 : volume) * 100}%)`
                             }}
                         />
                     </div>

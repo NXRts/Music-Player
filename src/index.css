@@ -12,11 +12,12 @@
     :root {
         --color-bg-primary: #121212;
         --color-bg-secondary: #000000;
-        --color-bg-highlight: #282828;
+        --color-bg-highlight: #2a2a2a;
         --color-bg-card: #282828;
         --color-text-primary: #ffffff;
         --color-text-secondary: #b3b3b3;
         --color-accent: #1db954;
+        --color-border-subtle: #4d4d4d;
     }
 
     /* Light Theme Override */
@@ -30,7 +31,8 @@
         --color-text-primary: #111827;
         /* Gray 900 */
         --color-text-secondary: #6b7280;
-        /* Gray 500 */
+        --color-accent: #1db954;
+        --color-border-subtle: #d1d5db;
     }
 }
 

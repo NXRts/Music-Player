@@ -2,7 +2,7 @@ import { Menu } from 'lucide-react';
 
 const Header = ({ onOpenMobileMenu }) => {
     return (
-        <header className="h-16 flex items-center justify-between px-6 bg-transparent sticky top-0 z-10 transition-colors duration-200">
+        <header className="h-16 flex items-center justify-between px-6 bg-bg-primary sticky top-0 z-10 transition-colors duration-200">
             <div className="flex gap-4 items-center">
                 <button
                     className="md:hidden text-text-primary mr-2"

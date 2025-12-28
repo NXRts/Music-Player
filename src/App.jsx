@@ -888,7 +888,7 @@ function App() {
         />
 
         <main className="flex-1 flex overflow-hidden relative">
-          <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary">
+          <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary relative">
 
             {currentView === 'home' && (
               <>
@@ -1119,7 +1119,7 @@ function App() {
         </main>
 
         {/* Player Bar */}
-        <div className="h-24 bg-bg-secondary border-t border-bg-highlight px-4 flex items-center justify-between z-50 relative">
+        <div className="h-24 bg-bg-card border-t border-bg-highlight px-4 flex items-center justify-between z-50 relative">
           <PlayerControls
             currentSong={currentSong}
             isPlaying={isPlaying}
