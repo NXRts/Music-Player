@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import EditSongModal from './components/EditSongModal';
 import SettingsModal from './components/SettingsModal';
+import CreatePlaylistModal from './components/CreatePlaylistModal';
 
 import PlayerControls from './components/PlayerControls';
 import SongList from './components/SongList';
@@ -48,6 +49,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [accentColor, setAccentColor] = useState(localStorage.getItem('accentColor') || '#1db954');
+  const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   const sleepTimerRef = useRef(null);
 
   // Apply Theme & Accent
@@ -338,10 +340,11 @@ function App() {
     }, fadeStep);
   };
 
-  const handleCreatePlaylist = async () => {
-    const name = prompt("Enter playlist name:");
-    if (!name) return;
+  const handleCreatePlaylist = () => {
+    setShowCreatePlaylistModal(true);
+  };
 
+  const finalizeCreatePlaylist = async (name) => {
     const newPlaylist = {
       id: Date.now(),
       name,
@@ -351,6 +354,7 @@ function App() {
 
     await savePlaylist(newPlaylist);
     setPlaylists(prev => [...prev, newPlaylist]);
+    setShowCreatePlaylistModal(false);
   };
 
   const handleDeletePlaylist = async (id) => {
@@ -1161,6 +1165,13 @@ function App() {
               song={editingSong}
               onSave={handleUpdateSongData}
               onClose={() => setEditingSong(null)}
+            />
+          )}
+
+          {showCreatePlaylistModal && (
+            <CreatePlaylistModal
+              onClose={() => setShowCreatePlaylistModal(false)}
+              onCreate={finalizeCreatePlaylist}
             />
           )}
         </div>
