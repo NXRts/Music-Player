@@ -27,7 +27,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
     };
 
     return (
-        <div className="flex items-center justify-between w-full h-full text-white px-2 md:px-0">
+        <div className="flex items-center justify-between w-full h-full text-text-primary px-2 md:px-0">
             {/* Left Info */}
             <div className="flex items-center gap-3 flex-1 md:w-1/4 min-w-0 pr-2">
                 {currentSong ? (
@@ -47,7 +47,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         </div>
                         <button
                             onClick={onToggleLike}
-                            className={`hover:text-white transition ${currentSong.isLiked ? 'text-accent' : 'text-text-secondary'} hidden sm:block`}
+                            className={`hover:text-text-primary transition ${currentSong.isLiked ? 'text-accent' : 'text-text-secondary'} hidden sm:block`}
                         >
                             <Heart size={18} fill={currentSong.isLiked ? "currentColor" : "none"} />
                         </button>
@@ -62,26 +62,26 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                 <div className="flex items-center gap-6 mb-2">
                     <button
                         onClick={onToggleShuffle}
-                        className={`hover:text-white transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
+                        className={`hover:text-text-primary transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
                         title="Shuffle"
                     >
                         <Shuffle size={20} />
                     </button>
-                    <button className="text-text-secondary hover:text-white transition" onClick={onSkipPrev}>
+                    <button className="text-text-secondary hover:text-text-primary transition" onClick={onSkipPrev}>
                         <SkipBack size={24} fill="currentColor" />
                     </button>
                     <button
-                        className="bg-white text-black rounded-full p-2 hover:scale-105 transition"
+                        className="bg-text-primary text-bg-primary rounded-full p-2 hover:scale-105 transition"
                         onClick={onPlayPause}
                     >
-                        {isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" />}
+                        {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
                     </button>
-                    <button className="text-text-secondary hover:text-white transition" onClick={onSkipNext}>
+                    <button className="text-text-secondary hover:text-text-primary transition" onClick={onSkipNext}>
                         <SkipForward size={24} fill="currentColor" />
                     </button>
                     <button
                         onClick={onToggleRepeat}
-                        className={`hover:text-white transition ${repeatMode > 0 ? 'text-accent' : 'text-text-secondary'} relative`}
+                        className={`hover:text-text-primary transition ${repeatMode > 0 ? 'text-accent' : 'text-text-secondary'} relative`}
                         title="Repeat"
                     >
                         <Repeat size={20} />
@@ -99,9 +99,9 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         max={duration || 0}
                         value={currentTime}
                         onChange={(e) => onSeek(parseFloat(e.target.value))}
-                        className="flex-1 h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-110 transition-all group"
+                        className="flex-1 h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-110 transition-all group"
                         style={{
-                            backgroundImage: `linear-gradient(to right, #ffffff ${(currentTime / (duration || 1)) * 100}%, #4d4d4d ${(currentTime / (duration || 1)) * 100}%)`
+                            backgroundImage: `linear-gradient(to right, var(--color-text-primary) ${(currentTime / (duration || 1)) * 100}%, var(--color-bg-highlight) ${(currentTime / (duration || 1)) * 100}%)`
                         }}
                     />
                     <span>{formatTime(duration)}</span>
@@ -114,18 +114,18 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                 <div className="relative" ref={sleepMenuRef}>
                     <button
                         onClick={() => setShowSleepMenu(!showSleepMenu)}
-                        className={`hover:text-white transition p-2 rounded-full hover:bg-white/10 ${isSleepTimerActive ? 'text-accent' : 'text-text-secondary'}`}
+                        className={`hover:text-text-primary transition p-2 rounded-full hover:bg-white/10 ${isSleepTimerActive ? 'text-accent' : 'text-text-secondary'}`}
                         title="Sleep Timer"
                     >
                         <Moon size={20} fill={isSleepTimerActive ? "currentColor" : "none"} />
                     </button>
                     {showSleepMenu && (
-                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-[#282828] border border-white/10 rounded-lg shadow-2xl py-2 w-40 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-bg-highlight border border-white/10 rounded-lg shadow-2xl py-2 w-40 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
                             <div className="text-xs font-bold text-text-secondary px-4 py-2 uppercase tracking-wider">Sleep Timer</div>
                             {[5, 15, 30, 45, 60].map((min) => (
                                 <button
                                     key={min}
-                                    className="w-full text-left px-4 py-2 hover:bg-white/10 text-white text-sm transition-colors flex items-center justify-between group"
+                                    className="w-full text-left px-4 py-2 hover:bg-white/10 text-text-primary text-sm transition-colors flex items-center justify-between group"
                                     onClick={() => { onSetSleepTimer(min); setShowSleepMenu(false); }}
                                 >
                                     <span>{min} Minutes</span>
@@ -144,7 +144,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                 </div>
 
                 <button
-                    className="text-text-secondary hover:text-white transition p-2 rounded-full hover:bg-white/10"
+                    className="text-text-secondary hover:text-text-primary transition p-2 rounded-full hover:bg-white/10"
                     title="Equalizer"
                     onClick={onToggleEqualizer}
                 >
@@ -153,21 +153,21 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
 
                 <button
                     onClick={onToggleLyrics}
-                    className={`${isLyricsOpen ? 'text-accent' : 'text-text-secondary'} hover:text-white transition p-2 rounded-full hover:bg-white/10`}
+                    className={`${isLyricsOpen ? 'text-accent' : 'text-text-secondary'} hover:text-text-primary transition p-2 rounded-full hover:bg-white/10`}
                     title="Lyrics/Info"
                 >
                     <Mic2 size={20} />
                 </button>
 
                 <button
-                    className="hover:text-white transition p-2 rounded-full hover:bg-white/10 text-text-secondary"
+                    className="hover:text-text-primary transition p-2 rounded-full hover:bg-white/10 text-text-secondary"
                     title="Queue"
                     onClick={onToggleQueue}
                 >
                     <ListMusic size={20} />
                 </button>
                 <div className="flex items-center gap-2 group w-32">
-                    <button onClick={onToggleMute} className="hover:text-white" title={isMuted ? "Unmute" : "Mute"}>
+                    <button onClick={onToggleMute} className="hover:text-text-primary" title={isMuted ? "Unmute" : "Mute"}>
                         {isMuted || volume === 0 ? <VolumeX size={20} /> : volume < 0.5 ? <Volume1 size={20} /> : <Volume2 size={20} />}
                     </button>
 
@@ -179,9 +179,9 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                             step={0.01}
                             value={isMuted ? 0 : volume}
                             onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full transition-all"
+                            className="w-full h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full transition-all"
                             style={{
-                                backgroundImage: `linear-gradient(to right, ${isMuted ? '#b3b3b3' : '#1db954'} ${(isMuted ? 0 : volume) * 100}%, #282828 ${(isMuted ? 0 : volume) * 100}%)`
+                                backgroundImage: `linear-gradient(to right, ${isMuted ? 'var(--color-text-secondary)' : 'var(--color-accent)'} ${(isMuted ? 0 : volume) * 100}%, var(--color-bg-highlight) ${(isMuted ? 0 : volume) * 100}%)`
                             }}
                         />
                     </div>
