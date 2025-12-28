@@ -46,7 +46,24 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [accentColor, setAccentColor] = useState(localStorage.getItem('accentColor') || '#1db954');
   const sleepTimerRef = useRef(null);
+
+  // Apply Theme & Accent
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light-theme');
+    } else {
+      root.classList.remove('light-theme');
+    }
+    root.style.setProperty('--color-accent', accentColor);
+
+    // Save to local storage
+    localStorage.setItem('theme', theme);
+    localStorage.setItem('accentColor', accentColor);
+  }, [theme, accentColor]);
 
   const handleUpdateSongData = async (songId, newData) => {
     // Update local state
@@ -1168,6 +1185,10 @@ function App() {
             refreshLibrary();
             showToast('Library Restored Successfully');
           }}
+          theme={theme}
+          setTheme={setTheme}
+          accentColor={accentColor}
+          setAccentColor={setAccentColor}
         />
       )}
 

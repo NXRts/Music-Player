@@ -7,14 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'bg-primary': '#121212',
-        'bg-secondary': '#181818',
-        'bg-highlight': '#282828',
-        'text-primary': '#ffffff',
-        'text-secondary': '#b3b3b3',
-        'accent': '#1db954',
-        'accent-hover': '#1ed760',
-        'primary': '#121212', // Alias for easier usage if needed
+        'bg-primary': 'var(--color-bg-primary)',
+        'bg-secondary': 'var(--color-bg-secondary)',
+        'bg-highlight': 'var(--color-bg-highlight)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'accent': 'var(--color-accent)',
+        'accent-hover': 'var(--color-accent)', // For now same, or calc later
+        'primary': 'var(--color-bg-primary)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
