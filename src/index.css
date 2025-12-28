@@ -13,6 +13,7 @@
         --color-bg-primary: #121212;
         --color-bg-secondary: #000000;
         --color-bg-highlight: #282828;
+        --color-bg-card: #282828;
         --color-text-primary: #ffffff;
         --color-text-secondary: #b3b3b3;
         --color-accent: #1db954;
@@ -21,10 +22,15 @@
     /* Light Theme Override */
     .light-theme {
         --color-bg-primary: #ffffff;
-        --color-bg-secondary: #f3f4f6; /* Gray 100 */
-        --color-bg-highlight: #e5e7eb; /* Gray 200 */
-        --color-text-primary: #111827; /* Gray 900 */
-        --color-text-secondary: #6b7280; /* Gray 500 */
+        --color-bg-secondary: #f3f4f6;
+        /* Gray 100 */
+        --color-bg-highlight: #e5e7eb;
+        /* Gray 200 */
+        --color-bg-card: #ffffff;
+        --color-text-primary: #111827;
+        /* Gray 900 */
+        --color-text-secondary: #6b7280;
+        /* Gray 500 */
     }
 }
 
@@ -51,22 +57,27 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-    background: #121212; 
+    background: #121212;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #5a5a5a; 
+    background: #5a5a5a;
     border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #888; 
+    background: #888;
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .animate-fade-in {
@@ -74,8 +85,15 @@ code {
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translate(-50%, 20px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
 }
 
 .animate-fade-in-up {

@@ -855,7 +855,7 @@ function App() {
 
   return (
     <div
-      className="flex h-screen bg-primary text-white overflow-hidden relative"
+      className="flex h-screen bg-bg-primary text-text-primary overflow-hidden relative"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
@@ -910,7 +910,7 @@ function App() {
                     <p className="mb-4 text-xl">No music yet</p>
                     <button
                       onClick={() => fileInputRef.current.click()}
-                      className="bg-white text-black font-bold py-2 px-6 rounded-full hover:bg-gray-200 transition"
+                      className="bg-text-primary text-bg-primary font-bold py-2 px-6 rounded-full hover:scale-105 transition"
                     >
                       Upload MP3s
                     </button>
@@ -926,7 +926,7 @@ function App() {
                       const cover = firstSong ? firstSong.cover : null;
 
                       return (
-                        <div key={playlist.id} className="flex items-center bg-white/10 hover:bg-white/20 transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
+                        <div key={playlist.id} className="flex items-center bg-bg-card hover:bg-bg-highlight transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
                           {cover && !cover.includes('placehold.co') ? (
                             <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
                           ) : (
