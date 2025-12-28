@@ -59,14 +59,14 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-bg-card border border-white/10 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+            <div className="bg-bg-card border border-border-subtle rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-200 flex flex-col max-h-[90vh]">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-white/10 bg-bg-highlight/30 flex-shrink-0">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <div className="flex justify-between items-center p-6 border-b border-border-subtle bg-bg-highlight/30 flex-shrink-0">
+                    <h2 className="text-2xl font-bold text-text-primary flex items-center gap-3">
                         <Settings size={28} className="text-accent" />
                         Settings
                     </h2>
-                    <button onClick={onClose} className="text-text-secondary hover:text-white transition">
+                    <button onClick={onClose} className="text-text-secondary hover:text-text-primary transition">
                         <X size={24} />
                     </button>
                 </div>
@@ -76,7 +76,7 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
 
                     {/* Appearance Section */}
                     <div>
-                        <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <h3 className="text-text-primary font-bold text-lg mb-4 flex items-center gap-2">
                             <Palette size={20} className="text-accent" /> Appearance
                         </h3>
 
@@ -87,13 +87,13 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                                 <div className="flex gap-4">
                                     <button
                                         onClick={() => setTheme('dark')}
-                                        className={`flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition ${theme === 'dark' ? 'border-accent bg-white/10 text-white' : 'border-white/10 bg-bg-highlight/50 text-text-secondary hover:bg-white/5'}`}
+                                        className={`flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition ${theme === 'dark' ? 'border-accent bg-accent/10 text-accent' : 'border-border-subtle bg-bg-highlight/50 text-text-secondary hover:bg-bg-highlight'}`}
                                     >
                                         <Moon size={20} /> Dark
                                     </button>
                                     <button
                                         onClick={() => setTheme('light')}
-                                        className={`flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition ${theme === 'light' ? 'border-accent bg-white/10 text-white' : 'border-white/10 bg-bg-highlight/50 text-text-secondary hover:bg-white/5'}`}
+                                        className={`flex-1 p-3 rounded-lg border flex items-center justify-center gap-2 transition ${theme === 'light' ? 'border-accent bg-accent/10 text-accent' : 'border-border-subtle bg-bg-highlight/50 text-text-secondary hover:bg-bg-highlight'}`}
                                     >
                                         <Sun size={20} /> Light
                                     </button>
@@ -108,7 +108,7 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                                         <button
                                             key={c}
                                             onClick={() => setAccentColor(c)}
-                                            className={`w-10 h-10 rounded-full transition-all border-2 ${accentColor === c ? 'border-white scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
+                                            className={`w-10 h-10 rounded-full transition-all border-2 ${accentColor === c ? 'border-text-primary scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
                                             style={{ backgroundColor: c }}
                                             aria-label={c}
                                         />
@@ -118,11 +118,11 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                         </div>
                     </div>
 
-                    <div className="border-t border-white/10"></div>
+                    <div className="border-t border-border-subtle"></div>
 
                     {/* Data Section */}
                     <div>
-                        <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                        <h3 className="text-text-primary font-bold text-lg mb-4 flex items-center gap-2">
                             <Database size={20} className="text-accent" /> Data Management
                         </h3>
                         <p className="text-text-secondary text-sm mb-4">
@@ -132,21 +132,21 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button
                                 onClick={handleExport}
-                                className="flex items-center justify-center gap-3 p-4 bg-bg-highlight hover:bg-opacity-80 rounded-xl transition group border border-white/5 hover:border-white/10"
+                                className="flex items-center justify-center gap-3 p-4 bg-bg-highlight hover:bg-opacity-80 rounded-xl transition group border border-border-subtle hover:border-text-secondary/20"
                             >
                                 <div className="bg-blue-500/20 p-2 rounded-full group-hover:bg-blue-500/30 transition text-blue-400">
                                     <Download size={20} />
                                 </div>
-                                <span className="font-bold">Export</span>
+                                <span className="font-bold text-text-primary">Export</span>
                             </button>
                             <button
                                 onClick={() => fileInputRef.current.click()}
-                                className="flex items-center justify-center gap-3 p-4 bg-bg-highlight hover:bg-opacity-80 rounded-xl transition group border border-white/5 hover:border-white/10"
+                                className="flex items-center justify-center gap-3 p-4 bg-bg-highlight hover:bg-opacity-80 rounded-xl transition group border border-border-subtle hover:border-text-secondary/20"
                             >
                                 <div className="bg-green-500/20 p-2 rounded-full group-hover:bg-green-500/30 transition text-green-400">
                                     <Upload size={20} />
                                 </div>
-                                <span className="font-bold">Import</span>
+                                <span className="font-bold text-text-primary">Import</span>
                             </button>
                         </div>
                         <input
@@ -167,7 +167,7 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 bg-bg-highlight/30 text-center text-xs text-text-secondary border-t border-white/10 flex-shrink-0">
+                <div className="p-4 bg-bg-highlight/30 text-center text-xs text-text-secondary border-t border-border-subtle flex-shrink-0">
                     Music Player v1.1 • Built with React & Web Audio API
                 </div>
             </div>
