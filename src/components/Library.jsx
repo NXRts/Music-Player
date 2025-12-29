@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Library, Plus, Music, Trash2, ArrowLeft, Disc, Mic2, ListMusic, Upload } from 'lucide-react';
+import { Library, Plus, Music, Trash2, ArrowLeft, Disc, Mic2, ListMusic, Upload, Play } from 'lucide-react';
 import SongList from './SongList';
 
 const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPlaylist, onDeletePlaylist, currentSong, isPlaying }) => {
@@ -38,22 +38,32 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
 
         return (
             <div className="p-6 md:p-8 text-white h-full flex flex-col">
-                <div className="flex items-center gap-4 mb-6">
-                    <button
-                        onClick={() => setSelectedGroup(null)}
-                        className="p-2 hover:bg-white/10 rounded-full transition"
-                    >
-                        <ArrowLeft size={24} />
-                    </button>
-                    <div>
-                        <h2 className="text-3xl font-bold">{selectedGroup.name}</h2>
-                        <p className="text-text-secondary capitalize">{selectedGroup.type} • {filteredSongs.length} Songs</p>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setSelectedGroup(null)}
+                            className="p-2 hover:bg-white/10 rounded-full transition"
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                        <div>
+                            <h2 className="text-3xl font-bold">{selectedGroup.name}</h2>
+                            <p className="text-text-secondary capitalize">{selectedGroup.type} • {filteredSongs.length} Songs</p>
+                        </div>
                     </div>
+                    {filteredSongs.length > 0 && (
+                        <button
+                            onClick={() => onSelect(filteredSongs[0], filteredSongs)}
+                            className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-black hover:scale-105 transition shadow-lg"
+                        >
+                            <Play fill="black" size={24} />
+                        </button>
+                    )}
                 </div>
                 <SongList
                     songs={filteredSongs}
                     currentSong={currentSong}
-                    onSelect={onSelect}
+                    onSelect={(song) => onSelect(song, filteredSongs)}
                     isPlaying={isPlaying}
                 />
             </div>
