@@ -405,6 +405,8 @@ function App() {
       // Switch UI state immediately
       setActivePlayer(nextPlayerNum);
       setCurrentSong(nextSong);
+      setCurrentTime(nextPlayer.currentTime || 0);
+      setDuration(nextPlayer.duration || 0);
 
       setTimeout(() => {
         currentPlayer.pause();
@@ -663,7 +665,14 @@ function App() {
     if (!audio) return;
 
     const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateDuration = () => {
+      if (audio.duration) setDuration(audio.duration);
+    };
+
+    // If metadata is already loaded, set it immediately
+    if (audio.duration) {
+      setDuration(audio.duration);
+    }
     const onEnded = () => {
       if (repeatMode === 2) { // Repeat One
         audio.currentTime = 0;
@@ -736,6 +745,14 @@ function App() {
       activeAudio.pause();
     }
   }, [isPlaying, currentSong, activePlayer]); // Depend on currentSong to trigger play when song changes
+
+  // Reset progress when song changes manually (without crossfade)
+  useEffect(() => {
+    if (currentSong && !isPlaying) {
+      setCurrentTime(0);
+      setDuration(0);
+    }
+  }, [currentSong]);
 
   // Set volume
   useEffect(() => {
