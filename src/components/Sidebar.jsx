@@ -76,13 +76,29 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobi
                             onClick={() => onNavigate('liked')}
                         >
                             <Heart size={24} className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white fill-current p-1 rounded-sm" />
-                            <span className="font-bold">Liked Songs</span>
+                            <span className="font-bold">Favorites</span>
+                        </div>
+                        <div
+                            className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'most-played' ? 'text-text-primary' : 'hover:text-text-primary'}`}
+                            onClick={() => onNavigate('most-played')}
+                        >
+                            <Activity size={24} className="bg-gradient-to-br from-orange-500 to-red-500 text-white p-1 rounded-sm" />
+                            <span className="font-bold">Most Played</span>
+                        </div>
+                        <div
+                            className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'recently-added' ? 'text-text-primary' : 'hover:text-text-primary'}`}
+                            onClick={() => onNavigate('recently-added')}
+                        >
+                            <Library size={24} className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white p-1 rounded-sm" />
+                            <span className="font-bold">Recently Added</span>
                         </div>
                         <div
                             className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'visualizer' ? 'text-text-primary' : 'hover:text-text-primary'}`}
                             onClick={() => onNavigate('visualizer')}
                         >
-                            <Activity size={24} />
+                            <div className="bg-bg-highlight p-1 rounded-sm">
+                                <Activity size={16} className="text-text-primary" />
+                            </div>
                             <span className="font-bold">Visualizer</span>
                         </div>
                     </div>

@@ -729,6 +729,10 @@ function App() {
   };
 
   const handleSongSelect = (song) => {
+    // Increment play count
+    const updatedPlayCount = (song.playCount || 0) + 1;
+    handleUpdateSongData(song.id, { playCount: updatedPlayCount });
+
     if (currentSong) {
       // Fade out old song first
       fadeOut(() => {
@@ -988,8 +992,8 @@ function App() {
                     <Heart size={64} fill="white" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold uppercase mb-2">Playlist</p>
-                    <h2 className="text-5xl font-bold mb-4">Liked Songs</h2>
+                    <p className="text-sm font-bold uppercase mb-2">Smart Playlist</p>
+                    <h2 className="text-5xl font-bold mb-4">Favorites</h2>
                     <p className="text-sm text-text-secondary">
                       {songs.filter(s => s.isLiked).length} songs
                     </p>
@@ -998,6 +1002,60 @@ function App() {
 
                 <SongList
                   songs={songs.filter(s => s.isLiked)}
+                  currentSong={currentSong}
+                  onSelect={handleSongSelect}
+                  isPlaying={isPlaying}
+                  onDelete={handleDeleteSong}
+                  onAddToPlaylist={handleAddToPlaylist}
+                  onSort={handleSort}
+                  onAddToQueue={handleAddToQueue}
+                  onPlayNext={handlePlayNext}
+                />
+              </div>
+            )}
+
+            {currentView === 'most-played' && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-32 h-32 bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white rounded shadow-lg">
+                    <Sliders size={64} fill="white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase mb-2">Smart Playlist</p>
+                    <h2 className="text-5xl font-bold mb-4">Most Played</h2>
+                    <p className="text-sm text-text-secondary">Based on your activity</p>
+                  </div>
+                </div>
+
+                <SongList
+                  songs={[...songs].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 50)}
+                  currentSong={currentSong}
+                  onSelect={handleSongSelect}
+                  isPlaying={isPlaying}
+                  onDelete={handleDeleteSong}
+                  onAddToPlaylist={handleAddToPlaylist}
+                  onSort={handleSort}
+                  onAddToQueue={handleAddToQueue}
+                  onPlayNext={handlePlayNext}
+                />
+              </div>
+            )}
+
+            {currentView === 'recently-added' && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white rounded shadow-lg">
+                    <Music size={64} fill="white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase mb-2">Smart Playlist</p>
+                    <h2 className="text-5xl font-bold mb-4">Recently Added</h2>
+                    <p className="text-sm text-text-secondary">Your latest uploads</p>
+                  </div>
+                </div>
+
+                <SongList
+                  songs={[...songs].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 50)}
                   currentSong={currentSong}
                   onSelect={handleSongSelect}
                   isPlaying={isPlaying}
