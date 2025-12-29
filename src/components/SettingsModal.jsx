@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { X, Download, Upload, Database, CheckCircle, AlertCircle, Moon, Sun, Palette, Settings } from 'lucide-react';
 import { exportData, importData } from '../services/db';
 
-const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor }) => {
+const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor, crossfadeDuration, setCrossfadeDuration }) => {
     const fileInputRef = useRef(null);
     const [status, setStatus] = useState(null); // 'success', 'error', or null
 
@@ -97,6 +97,28 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                                     >
                                         <Sun size={20} /> Light
                                     </button>
+                                </div>
+                            </div>
+
+                            {/* Crossfade Slider */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <label className="block text-sm text-text-secondary italic">Crossfade (Gapless Transition)</label>
+                                    <span className="text-accent font-bold text-sm bg-accent/10 px-2 py-0.5 rounded">{crossfadeDuration}s</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="12"
+                                    step="1"
+                                    value={crossfadeDuration}
+                                    onChange={(e) => setCrossfadeDuration(parseInt(e.target.value))}
+                                    className="w-full h-1.5 bg-bg-highlight rounded-full appearance-none cursor-pointer accent-accent"
+                                />
+                                <div className="flex justify-between mt-1 text-[10px] text-text-secondary uppercase">
+                                    <span>Off</span>
+                                    <span>Smooth</span>
+                                    <span>Extreme</span>
                                 </div>
                             </div>
 
