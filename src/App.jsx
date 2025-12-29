@@ -25,6 +25,7 @@ function App() {
   const [songs, setSongs] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [activePlaylist, setActivePlaylist] = useState(null);
+  const [playbackContext, setPlaybackContext] = useState([]); // Context for Next/Prev (e.g. current playlist)
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -746,32 +747,32 @@ function App() {
       return;
     }
 
-    if (songs.length === 0) return;
+    const context = playbackContext.length > 0 ? playbackContext : songs;
+    if (context.length === 0) return;
 
     let nextIndex;
-    const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
+    const currentIndex = context.findIndex(s => s.id === currentSong?.id);
 
     if (isShuffle) {
-      // Pick random index different from current
       do {
-        nextIndex = Math.floor(Math.random() * songs.length);
-      } while (songs.length > 1 && nextIndex === currentIndex);
+        nextIndex = Math.floor(Math.random() * context.length);
+      } while (context.length > 1 && nextIndex === currentIndex);
     } else {
-      // Sequential
-      nextIndex = (currentIndex + 1) % songs.length;
+      nextIndex = (currentIndex + 1) % context.length;
     }
 
-    const nextSong = songs[nextIndex];
+    const nextSong = context[nextIndex];
     handleSongSelect(nextSong);
   };
 
   const skipPrev = () => {
-    if (songs.length === 0) return;
+    const context = playbackContext.length > 0 ? playbackContext : songs;
+    if (context.length === 0) return;
 
-    const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
-    const prevIndex = (currentIndex - 1 + songs.length) % songs.length;
+    const currentIndex = context.findIndex(s => s.id === currentSong?.id);
+    const prevIndex = (currentIndex - 1 + context.length) % context.length;
 
-    const prevSong = songs[prevIndex];
+    const prevSong = context[prevIndex];
     handleSongSelect(prevSong);
   };
 
@@ -967,7 +968,14 @@ function App() {
     }
   };
 
-  const handleSongSelect = (song) => {
+  const handleSongSelect = (song, context = null) => {
+    // Set playback context if provided
+    if (context) {
+      setPlaybackContext(context);
+    } else if (playbackContext.length === 0 || !playbackContext.find(s => s.id === song.id)) {
+      setPlaybackContext(songs);
+    }
+
     // Increment play count
     const updatedPlayCount = (song.playCount || 0) + 1;
     handleUpdateSongData(song.id, { playCount: updatedPlayCount });
@@ -1255,12 +1263,21 @@ function App() {
                       {songs.filter(s => s.isLiked).length} songs
                     </p>
                   </div>
+                  <button
+                    onClick={() => {
+                      const likedSongs = songs.filter(s => s.isLiked);
+                      if (likedSongs.length > 0) handleSongSelect(likedSongs[0], likedSongs);
+                    }}
+                    className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-black hover:scale-105 transition shadow-lg ml-auto"
+                  >
+                    <Play fill="black" size={24} />
+                  </button>
                 </div>
 
                 <SongList
                   songs={songs.filter(s => s.isLiked)}
                   currentSong={currentSong}
-                  onSelect={handleSongSelect}
+                  onSelect={(song) => handleSongSelect(song, songs.filter(s => s.isLiked))}
                   isPlaying={isPlaying}
                   onDelete={handleDeleteSong}
                   onAddToPlaylist={handleAddToPlaylist}
@@ -1282,12 +1299,24 @@ function App() {
                     <h2 className="text-5xl font-bold mb-4">Most Played</h2>
                     <p className="text-sm text-text-secondary">Based on your activity</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      const mostPlayed = [...songs].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 50);
+                      if (mostPlayed.length > 0) handleSongSelect(mostPlayed[0], mostPlayed);
+                    }}
+                    className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-black hover:scale-105 transition shadow-lg ml-auto"
+                  >
+                    <Play fill="black" size={24} />
+                  </button>
                 </div>
 
                 <SongList
                   songs={[...songs].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 50)}
                   currentSong={currentSong}
-                  onSelect={handleSongSelect}
+                  onSelect={(song) => {
+                    const mostPlayed = [...songs].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 50);
+                    handleSongSelect(song, mostPlayed);
+                  }}
                   isPlaying={isPlaying}
                   onDelete={handleDeleteSong}
                   onAddToPlaylist={handleAddToPlaylist}
@@ -1309,12 +1338,24 @@ function App() {
                     <h2 className="text-5xl font-bold mb-4">Recently Added</h2>
                     <p className="text-sm text-text-secondary">Your latest uploads</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      const recent = [...songs].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 50);
+                      if (recent.length > 0) handleSongSelect(recent[0], recent);
+                    }}
+                    className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-black hover:scale-105 transition shadow-lg ml-auto"
+                  >
+                    <Play fill="black" size={24} />
+                  </button>
                 </div>
 
                 <SongList
                   songs={[...songs].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 50)}
                   currentSong={currentSong}
-                  onSelect={handleSongSelect}
+                  onSelect={(song) => {
+                    const recent = [...songs].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 50);
+                    handleSongSelect(song, recent);
+                  }}
                   isPlaying={isPlaying}
                   onDelete={handleDeleteSong}
                   onAddToPlaylist={handleAddToPlaylist}
@@ -1351,7 +1392,7 @@ function App() {
                   <SongList
                     songs={queue}
                     currentSong={null} // Don't highlight any as current in the upcoming list
-                    onSelect={handleSongSelect} // Allow playing from queue
+                    onSelect={(song) => handleSongSelect(song, queue)} // Allow playing from queue
                     isPlaying={false}
                     onAddToPlaylist={handleAddToPlaylist}
                     onAddToQueue={handleAddToQueue}
@@ -1366,7 +1407,7 @@ function App() {
                     <SongList
                       songs={history.slice(0, 5)}
                       currentSong={null}
-                      onSelect={handleSongSelect}
+                      onSelect={(song) => handleSongSelect(song, history.slice(0, 5))}
                       isPlaying={false}
                       onAddToPlaylist={handleAddToPlaylist}
                       onAddToQueue={handleAddToQueue}
@@ -1386,16 +1427,25 @@ function App() {
                   <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg">
                     <Music size={32} />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-3xl font-bold">{activePlaylist.name}</h2>
                     <p className="text-sm text-text-secondary">{activePlaylist.songIds.length} songs</p>
                   </div>
+                  <button
+                    onClick={() => {
+                      const playlistSongs = songs.filter(s => activePlaylist.songIds.includes(s.id));
+                      if (playlistSongs.length > 0) handleSongSelect(playlistSongs[0], playlistSongs);
+                    }}
+                    className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-black hover:scale-105 transition shadow-lg"
+                  >
+                    <Play fill="black" size={24} />
+                  </button>
                 </div>
 
                 <SongList
                   songs={songs.filter(s => activePlaylist.songIds.includes(s.id))}
                   currentSong={currentSong}
-                  onSelect={handleSongSelect}
+                  onSelect={(song) => handleSongSelect(song, songs.filter(s => activePlaylist.songIds.includes(s.id)))}
                   isPlaying={isPlaying}
                   onDelete={handleRemoveFromPlaylist}
                   onAddToPlaylist={handleAddToPlaylist}
