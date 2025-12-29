@@ -2,6 +2,7 @@ const DB_NAME = 'MusicPlayerDB';
 const DB_VERSION = 2;
 const STORE_NAME = 'songs';
 const PLAYLIST_STORE_NAME = 'playlists';
+const FOLDER_STORE_NAME = 'folders';
 
 export const initDB = () => {
     return new Promise((resolve, reject) => {
@@ -18,6 +19,9 @@ export const initDB = () => {
             }
             if (!db.objectStoreNames.contains(PLAYLIST_STORE_NAME)) {
                 db.createObjectStore(PLAYLIST_STORE_NAME, { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains(FOLDER_STORE_NAME)) {
+                db.createObjectStore(FOLDER_STORE_NAME, { keyPath: 'path' });
             }
         };
     });
@@ -148,5 +152,38 @@ export const importData = async (jsonData) => {
         if (jsonData.playlists && Array.isArray(jsonData.playlists)) {
             jsonData.playlists.forEach(playlist => playlistStore.put(playlist));
         }
+    });
+};
+// Synced Folders
+export const saveFolderHandle = async (folderData) => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([FOLDER_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(FOLDER_STORE_NAME);
+        const request = store.put(folderData);
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => reject(event.target.error);
+    });
+};
+
+export const getAllFolders = async () => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([FOLDER_STORE_NAME], 'readonly');
+        const store = transaction.objectStore(FOLDER_STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
+};
+
+export const deleteFolderHandle = async (path) => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([FOLDER_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(FOLDER_STORE_NAME);
+        const request = store.delete(path);
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => reject(event.target.error);
     });
 };

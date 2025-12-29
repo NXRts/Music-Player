@@ -1,6 +1,6 @@
-import { Home, Search, Library, PlusSquare, Heart, Upload, X, Activity, Settings } from 'lucide-react';
+import { Home, Search, Library, PlusSquare, Heart, Upload, X, Activity, Settings, FolderSync } from 'lucide-react';
 
-const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobileOpen, onClose, onOpenSettings }) => {
+const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePlaylist, isMobileOpen, onClose, onOpenSettings }) => {
     return (
         <>
             {/* Mobile Overlay */}
@@ -70,6 +70,15 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onCreatePlaylist, isMobi
                                 <Upload size={16} className="text-text-primary" />
                             </div>
                             <span className="font-bold">Add Local Music</span>
+                        </div>
+                        <div
+                            className="flex items-center gap-3 hover:text-text-primary transition cursor-pointer"
+                            onClick={onSyncFolder}
+                        >
+                            <div className="bg-bg-highlight p-1 rounded-sm">
+                                <FolderSync size={16} className="text-text-primary" />
+                            </div>
+                            <span className="font-bold text-accent">Sync Local Folder (Pro)</span>
                         </div>
                         <div
                             className={`flex items-center gap-3 transition cursor-pointer ${currentView === 'liked' ? 'text-text-primary' : 'hover:text-text-primary'}`}

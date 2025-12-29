@@ -13,7 +13,7 @@ import LyricsView from './components/LyricsView';
 import Visualizer from './components/Visualizer';
 import Equalizer from './components/Equalizer';
 import { Upload, Music, ArrowLeft, Heart, Play, Sliders } from 'lucide-react';
-import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist } from './services/db';
+import { saveSong, getAllSongs, deleteSong, clearAllSongs, savePlaylist, getAllPlaylists, deletePlaylist, saveFolderHandle, getAllFolders } from './services/db';
 import { formatDuration, getAudioDuration, getSongMetadata } from './utils/audioUtils';
 
 function App() {
@@ -51,7 +51,13 @@ function App() {
   const [accentColor, setAccentColor] = useState(localStorage.getItem('accentColor') || '#1db954');
   const [crossfadeDuration, setCrossfadeDuration] = useState(parseInt(localStorage.getItem('crossfadeDuration') || '5'));
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '' });
   const sleepTimerRef = useRef(null);
+
+  const showToast = (message) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+  };
 
   // Apply Theme & Accent
   useEffect(() => {
@@ -256,51 +262,64 @@ function App() {
   // Load songs & playlists from DB on mount
   const refreshLibrary = async () => {
     try {
-      // Load Songs
       const savedSongs = await getAllSongs();
       const songsWithUrls = savedSongs.map(song => {
-        try {
-          return {
-            ...song,
-            src: song.file ? URL.createObjectURL(song.file) : ''
-          };
-        } catch (e) {
-          console.error("Error creating URL for song:", song, e);
-          return null;
+        if (song.file) {
+          try {
+            return { ...song, src: URL.createObjectURL(song.file) };
+          } catch (e) {
+            console.error("Error creating URL for song:", song.title, e);
+            return song;
+          }
         }
-      }).filter(s => s !== null);
-
+        return song;
+      });
       setSongs(songsWithUrls);
+    } catch (e) {
+      console.error("Refresh library failed:", e);
+    }
+  };
 
-      // Load Playlists
-      const savedPlaylists = await getAllPlaylists();
-      setPlaylists(savedPlaylists);
+  // Load songs, playlists & synced folders from DB on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const storedSongs = await getAllSongs();
+        const storedPlaylists = await getAllPlaylists();
+        const storedFolders = await getAllFolders();
 
-      // --- RESUME PLAYBACK LOGIC ---
-      const lastSongId = localStorage.getItem('lastPlayedSongId');
-      const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+        const songsWithUrls = storedSongs.map(song => {
+          if (song.file) {
+            try {
+              return { ...song, src: URL.createObjectURL(song.file) };
+            } catch (e) {
+              return song;
+            }
+          }
+          return song;
+        });
 
-      if (lastSongId && songsWithUrls.length > 0) {
-        // Need to check if currentSong is already set, or just set it if null?
-        // Since this runs on mount/restore, likely better to set it.
-        const songToResume = songsWithUrls.find(s => s.id === (Number(lastSongId) || lastSongId)); // weak match
+        setSongs(songsWithUrls);
+        setPlaylists(storedPlaylists);
+
+        const lastSongId = localStorage.getItem('lastPlayedSongId');
+        const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
+        const songToResume = songsWithUrls.find(s => String(s.id) === String(lastSongId));
+
         if (songToResume && !currentSong) {
           setCurrentSong(songToResume);
           const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
-          if (activeAudio) {
+          if (activeAudio && songToResume.src) {
             activeAudio.src = songToResume.src;
             activeAudio.currentTime = lastTime || 0;
             setCurrentTime(lastTime || 0);
           }
         }
+      } catch (error) {
+        console.error("Failed to load data:", error);
       }
-    } catch (error) {
-      console.error("Failed to load data:", error);
-    }
-  };
-
-  useEffect(() => {
-    refreshLibrary();
+    };
+    loadData();
   }, []);
 
   // Save Playback State
@@ -416,6 +435,90 @@ function App() {
       console.error("Crossfade play failed", e);
       __playSong(nextSong); // fallback
     });
+  };
+
+  const handleNavigate = (view) => {
+    setCurrentView(view);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleSyncFolder = async () => {
+    if (!('showDirectoryPicker' in window)) {
+      alert("Browser Anda tidak mendukung File System Access API. Silakan gunakan Chrome atau Edge.");
+      return;
+    }
+
+    try {
+      const folderHandle = await window.showDirectoryPicker();
+      await saveFolderHandle({ path: folderHandle.name, handle: folderHandle });
+
+      showToast(`Mulai memindai folder: ${folderHandle.name}...`);
+
+      const audioFiles = [];
+      const scan = async (handle, path = '') => {
+        for await (const entry of handle.values()) {
+          if (entry.kind === 'directory') {
+            await scan(entry, `${path}/${entry.name}`);
+          } else if (entry.kind === 'file') {
+            if (/\.(mp3|wav|m4a|flac|ogg)$/i.test(entry.name)) {
+              audioFiles.push({ handle: entry, path: `${path}/${entry.name}` });
+            }
+          }
+        }
+      };
+
+      await scan(folderHandle);
+
+      let processedCount = 0;
+      const newSongs = [];
+
+      for (const fileObj of audioFiles) {
+        const { handle, path } = fileObj;
+        const file = await handle.getFile();
+
+        // Skip if already in library
+        if (songs.some(s => s.title === file.name.replace(/\.[^/.]+$/, "") && s.size === file.size)) {
+          continue;
+        }
+
+        const metadata = await getSongMetadata(file);
+        const duration = await getAudioDuration(file);
+
+        const songData = {
+          id: Date.now() + Math.random(),
+          ...metadata,
+          duration,
+          size: file.size,
+          type: 'local',
+          fileHandle: handle,
+          path: path,
+          createdAt: Date.now(),
+          playCount: 0,
+          isLiked: false
+        };
+
+        await saveSong(songData);
+        newSongs.push(songData);
+        processedCount++;
+
+        if (processedCount % 5 === 0) {
+          showToast(`Indexing: ${processedCount}/${audioFiles.length} lagu...`);
+        }
+      }
+
+      if (newSongs.length > 0) {
+        setSongs(prev => [...prev, ...newSongs]);
+        showToast(`Sinkronisasi selesai! Berhasil menambahkan ${newSongs.length} lagu.`);
+      } else {
+        showToast("Folder sudah sinkron. Tidak ada lagu baru.");
+      }
+
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error("Folder sync failed:", error);
+        alert("Gagal sinkronisasi folder: " + error.message);
+      }
+    }
   };
 
   const handleCreatePlaylist = () => {
@@ -772,7 +875,7 @@ function App() {
   const toggleMute = () => {
     if (isMuted) {
       setIsMuted(false);
-      setVolume(prevVolumeRef.current || 0.5);
+      prevVolumeRef.current = volume;
     } else {
       prevVolumeRef.current = volume;
       setVolume(0);
@@ -840,7 +943,7 @@ function App() {
       // Play then fade in
       if (activeAudio) {
         activeAudio.play().then(() => {
-          fadeIn();
+          fadeIn(); // Fade in new song
           setIsPlaying(true);
           setupAudioContext(); // Ensure/resume context
         }).catch(e => console.error(e));
@@ -860,35 +963,49 @@ function App() {
     }
   };
 
-  const __playSong = (song) => {
-    if (currentSong) {
-      setHistory(prev => {
-        const newHistory = [currentSong, ...prev];
-        // Unique history based on ID
-        const uniqueHistory = newHistory.filter((item, index, self) =>
-          index === self.findIndex((t) => (
-            t.id === item.id
-          ))
-        );
-        return uniqueHistory.slice(0, 10);
-      });
+  const __playSong = async (song, shouldPlay = true) => {
+    // If it's a local file from a synced folder, we need to get the file blob first
+    let songSrc = song.src;
+
+    if (song.type === 'local' && song.fileHandle) {
+      try {
+        // Request permission if needed
+        const status = await song.fileHandle.queryPermission({ mode: 'read' });
+        if (status !== 'granted') {
+          const newStatus = await song.fileHandle.requestPermission({ mode: 'read' });
+          if (newStatus !== 'granted') {
+            showToast("Izin akses file ditolak.");
+            return;
+          }
+        }
+
+        const file = await song.fileHandle.getFile();
+        songSrc = URL.createObjectURL(file);
+        // Clear old URL if needed? Blob URLs should be managed carefully
+      } catch (e) {
+        console.error("Failed to access local file:", e);
+        showToast("Gagal mengakses file lokal. Mungkin folder telah dipindahkan.");
+        return;
+      }
     }
 
-    setCurrentSong(song);
+    setCurrentSong({ ...song, src: songSrc });
     const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
     if (activeAudio) {
-      activeAudio.src = song.src; // Use local blob URL
-      activeAudio.play().then(() => {
-        fadeIn(); // Fade in new song
-        setIsPlaying(true);
-        setupAudioContext();
-        // Auto-open lyrics sidebar ONLY on desktop
-        if (window.innerWidth >= 768) {
-          setShowLyrics(true);
-        }
-      }).catch(e => console.error("Error playing:", e));
+      activeAudio.src = songSrc;
+      if (shouldPlay) {
+        activeAudio.play().then(() => {
+          fadeIn(); // Fade in new song
+          setIsPlaying(true);
+          setupAudioContext();
+          // Auto-open lyrics sidebar ONLY on desktop
+          if (window.innerWidth >= 768) {
+            setShowLyrics(true);
+          }
+        }).catch(e => console.error("Error playing:", e));
+      }
     } else {
-      setIsPlaying(true);
+      setIsPlaying(shouldPlay);
       setShowLyrics(true); // Auto-open sidebar
     }
   };
@@ -1004,8 +1121,9 @@ function App() {
 
       <Sidebar
         currentView={currentView}
-        onNavigate={(view) => { setCurrentView(view); setIsMobileMenuOpen(false); }}
+        onNavigate={handleNavigate}
         onAddMusic={() => { fileInputRef.current.click(); setIsMobileMenuOpen(false); }}
+        onSyncFolder={() => { handleSyncFolder(); setIsMobileMenuOpen(false); }}
         onCreatePlaylist={handleCreatePlaylist}
         isMobileOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
@@ -1428,6 +1546,12 @@ function App() {
               + Create New Playlist
             </button>
           </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[200] bg-accent text-black font-bold py-2 px-6 rounded-full shadow-2xl animate-bounce">
+          {toast.message}
         </div>
       )}
     </div>
