@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Library, Plus, Music, Trash2, ArrowLeft, Disc, Mic2, ListMusic } from 'lucide-react';
+import { Library, Plus, Music, Trash2, ArrowLeft, Disc, Mic2, ListMusic, Upload } from 'lucide-react';
 import SongList from './SongList';
 
 const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPlaylist, onDeletePlaylist, currentSong, isPlaying }) => {
@@ -64,13 +64,22 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
         <div className="p-6 md:p-8 text-white h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl font-bold">Your Library</h2>
-                <button
-                    onClick={onCreatePlaylist}
-                    className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-full hover:scale-105 transition"
-                >
-                    <Plus size={20} />
-                    Create Playlist
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => onAddMusic()}
+                        className="flex items-center gap-2 bg-accent text-black font-bold px-4 py-2 rounded-full hover:scale-105 transition"
+                    >
+                        <Upload size={20} />
+                        Add Music
+                    </button>
+                    <button
+                        onClick={onCreatePlaylist}
+                        className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-full hover:scale-105 transition"
+                    >
+                        <Plus size={20} />
+                        Create Playlist
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}

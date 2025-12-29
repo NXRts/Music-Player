@@ -580,56 +580,72 @@ function App() {
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
+    if (files.length === 0) return;
+
     const existingTitles = new Set(songs.map(s => s.title));
     let addedCount = 0;
 
-    // Process each file
-    for (const file of files) {
-      // Get Duration & Metadata
-      const durationSeconds = await getAudioDuration(file);
-      const formattedDuration = formatDuration(durationSeconds);
-      const metadata = await getSongMetadata(file);
+    showToast(`Memproses ${files.length} lagu...`);
 
-      // Check duplicates using metadata title or filename
-      const titleToCheck = metadata.title || file.name.replace(/\.[^/.]+$/, "");
+    try {
+      // Process each file
+      for (const file of files) {
+        try {
+          // Get Duration & Metadata
+          const durationSeconds = await getAudioDuration(file);
+          const formattedDuration = formatDuration(durationSeconds);
+          const metadata = await getSongMetadata(file);
 
-      if (existingTitles.has(titleToCheck)) {
-        console.warn(`Duplicate song skipped: ${titleToCheck}`);
-        continue;
+          // Check duplicates using metadata title or filename
+          const titleToCheck = metadata.title || file.name.replace(/\.[^/.]+$/, "");
+
+          if (existingTitles.has(titleToCheck)) {
+            console.warn(`Duplicate song skipped: ${titleToCheck}`);
+            continue;
+          }
+
+          // Add to set to prevent duplicates within the same batch
+          existingTitles.add(titleToCheck);
+
+          const id = Date.now() + Math.random();
+          const newSong = {
+            id,
+            title: metadata.title || titleToCheck,
+            artist: metadata.artist || 'Unknown Artist',
+            album: metadata.album || 'Unknown Album',
+            duration: formattedDuration,
+            cover: metadata.cover || 'https://placehold.co/300x300/333333/ffffff?text=MP3',
+            file: file, // Store actual blob in DB
+            createdAt: Date.now()
+          };
+
+          // Save to DB
+          await saveSong(newSong);
+
+          // Update state with object URL
+          const songForState = {
+            ...newSong,
+            src: URL.createObjectURL(file)
+          };
+
+          setSongs(prev => [...prev, songForState]);
+          addedCount++;
+        } catch (fileError) {
+          console.error(`Error processing file ${file.name}:`, fileError);
+        }
       }
 
-      // Add to set to prevent duplicates within the same batch
-      existingTitles.add(titleToCheck);
-
-      const id = Date.now() + Math.random();
-      const newSong = {
-        id,
-        title: metadata.title || titleToCheck,
-        artist: metadata.artist || 'Unknown Artist',
-        album: metadata.album || 'Unknown Album',
-        duration: formattedDuration,
-        cover: metadata.cover || 'https://placehold.co/300x300/333333/ffffff?text=MP3',
-        file: file, // Store actual blob in DB
-        createdAt: Date.now()
-      };
-
-      // Save to DB
-      await saveSong(newSong);
-
-      // Update state with object URL
-      const songForState = {
-        ...newSong,
-        src: URL.createObjectURL(file)
-      };
-
-      setSongs(prev => [...prev, songForState]);
-      addedCount++;
-    }
-
-
-
-    if (addedCount < files.length) {
-      alert(`Uploaded ${addedCount} songs. ${files.length - addedCount} duplicates were skipped.`);
+      if (addedCount > 0) {
+        showToast(`Berhasil menambahkan ${addedCount} lagu.`);
+      } else if (files.length > 0) {
+        showToast("Tidak ada lagu baru yang ditambahkan (mungkin duplikat).");
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Gagal mengunggah lagu: " + error.message);
+    } finally {
+      // Clear the input so the same file can be selected again
+      if (event.target) event.target.value = '';
     }
   };
 
@@ -1217,6 +1233,7 @@ function App() {
                 playlists={playlists}
                 songs={songs}
                 onSelect={handleSongSelect}
+                onAddMusic={() => fileInputRef.current.click()}
                 onCreatePlaylist={handleCreatePlaylist}
                 onSelectPlaylist={handleSelectPlaylist}
                 onDeletePlaylist={handleDeletePlaylist}

@@ -1,5 +1,5 @@
 const DB_NAME = 'MusicPlayerDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'songs';
 const PLAYLIST_STORE_NAME = 'playlists';
 const FOLDER_STORE_NAME = 'folders';
