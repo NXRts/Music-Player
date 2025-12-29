@@ -1,24 +1,59 @@
-# Logs
-logs
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.local
+
+# Service account keys and other credentials
+*.json
+!package.json
+!tsconfig.json
+!jsconfig.json
+!manifest.json
+!composer.json
+!*.schema.json
+!*lock.json
+*.key
+*.pem
+*.pfx
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+
+# Logs and databases
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+*.db
+*.sqlite
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
+# IDE/Editor and OS files
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Testing and Coverage
+coverage/
+*.lcov
+.nyc_output/
