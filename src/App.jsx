@@ -593,6 +593,23 @@ function App() {
     });
   };
 
+  const handleDeleteAllSongs = async () => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus SEMUA lagu dari library? Tindakan ini tidak dapat dibatalkan.")) {
+      try {
+        await clearAllSongs();
+        setSongs([]);
+        showToast("Seluruh library telah dihapus.");
+        if (isPlaying) {
+          setIsPlaying(false);
+          setCurrentSong(null);
+        }
+      } catch (error) {
+        console.error("Failed to delete all songs:", error);
+        alert("Gagal menghapus library.");
+      }
+    }
+  };
+
   const handleReorderPlaylist = async (fromIndex, toIndex) => {
     if (!activePlaylist) return;
     const updatedIds = [...activePlaylist.songIds];
@@ -1180,7 +1197,7 @@ function App() {
                   onSelect={handleSongSelect}
                   isPlaying={isPlaying}
                   onDelete={handleDeleteSong}
-                  onClearAll={handleClearAllSongs}
+                  onDeleteAll={handleDeleteAllSongs}
                   onAddToPlaylist={handleAddToPlaylist}
                   onSort={handleSort}
                   onAddToQueue={handleAddToQueue}

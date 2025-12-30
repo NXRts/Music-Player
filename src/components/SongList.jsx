@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ, Clock3, GripVertical } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit, onReorder }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteAll, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit, onReorder }) => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [draggedIndex, setDraggedIndex] = useState(null);
@@ -60,6 +60,17 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                         <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
                             <button onClick={(e) => { e.stopPropagation(); onSort && onSort('date'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm">Date Added</button>
                             <button onClick={(e) => { e.stopPropagation(); onSort && onSort('title'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm">Title (A-Z)</button>
+                            {onDeleteAll && (
+                                <>
+                                    <div className="border-t border-bg-secondary my-1"></div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onDeleteAll(); setShowSortMenu(false); }}
+                                        className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-red-500 text-sm flex items-center gap-2"
+                                    >
+                                        <Trash2 size={14} /> Delete All Songs
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
