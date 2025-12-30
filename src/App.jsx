@@ -663,6 +663,27 @@ function App() {
     setActivePlaylist(updatedPlaylist);
   };
 
+  const handleReorderQueue = (fromIndex, toIndex) => {
+    setQueue(prevQueue => {
+      const result = [...prevQueue];
+      const [removed] = result.splice(fromIndex, 1);
+      result.splice(toIndex, 0, removed);
+      return result;
+    });
+  };
+
+  const handleReorderPlaylist = async (fromIndex, toIndex) => {
+    if (!activePlaylist) return;
+    const updatedIds = [...activePlaylist.songIds];
+    const [removed] = updatedIds.splice(fromIndex, 1);
+    updatedIds.splice(toIndex, 0, removed);
+
+    const updatedPlaylist = { ...activePlaylist, songIds: updatedIds };
+    await savePlaylist(updatedPlaylist);
+    setPlaylists(prev => prev.map(p => p.id === activePlaylist.id ? updatedPlaylist : p));
+    setActivePlaylist(updatedPlaylist);
+  };
+
   const handleDeleteSong = async (songId) => {
     // Find song title for confirmation
     const song = songs.find(s => s.id == songId); // Loosen equality check
@@ -1443,6 +1464,7 @@ function App() {
                     onAddToQueue={handleAddToQueue}
                     onPlayNext={handlePlayNext}
                     onDelete={(id) => setQueue(prev => prev.filter(s => s.id !== id))} // Allow removing from queue
+                    onReorder={handleReorderQueue}
                   />
                 )}
 
@@ -1496,6 +1518,7 @@ function App() {
                   onAddToPlaylist={handleAddToPlaylist}
                   onAddToQueue={handleAddToQueue}
                   onPlayNext={handlePlayNext}
+                  onReorder={handleReorderPlaylist}
                 />
               </div>
             )}
@@ -1612,6 +1635,8 @@ function App() {
           setAccentColor={setAccentColor}
           crossfadeDuration={crossfadeDuration}
           setCrossfadeDuration={setCrossfadeDuration}
+          onSetSleepTimer={handleSetSleepTimer}
+          isSleepTimerActive={isSleepTimerActive}
         />
       )}
 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ, Clock3 } from 'lucide-react';
+import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ, Clock3, GripVertical } from 'lucide-react';
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit }) => {
+const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit, onReorder }) => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [showSortMenu, setShowSortMenu] = useState(false);
+    const [draggedIndex, setDraggedIndex] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
 
     // Close menu when clicking outside
     React.useEffect(() => {
@@ -14,6 +16,29 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
+
+    const handleDragStart = (e, index) => {
+        if (!onReorder) return;
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+        // Ghost image adjustment if needed
+    };
+
+    const handleDragOver = (e, index) => {
+        if (!onReorder || draggedIndex === null) return;
+        e.preventDefault();
+        setDragOverIndex(index);
+    };
+
+    const handleDrop = (e, index) => {
+        if (!onReorder || draggedIndex === null) return;
+        e.preventDefault();
+        if (draggedIndex !== index) {
+            onReorder(draggedIndex, index);
+        }
+        setDraggedIndex(null);
+        setDragOverIndex(null);
+    };
 
     return (
         <div className="flex flex-col pb-24">
@@ -43,15 +68,28 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
             <div className="flex flex-col mt-2">
                 {songs.map((song, index) => {
                     const isCurrent = currentSong?.id === song.id;
+                    const isDragOver = dragOverIndex === index;
 
                     return (
                         <div
                             key={song.id}
+                            draggable={!!onReorder}
+                            onDragStart={(e) => handleDragStart(e, index)}
+                            onDragOver={(e) => handleDragOver(e, index)}
+                            onDragLeave={() => setDragOverIndex(null)}
+                            onDrop={(e) => handleDrop(e, index)}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-colors group ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'}`}
+                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
                         >
                             <div className="w-8 flex items-center justify-center relative">
-                                <span className={`block ${isCurrent && isPlaying ? 'hidden' : 'group-hover:hidden'}`}>{isCurrent && isPlaying ? '' : index + 1}</span>
+                                {onReorder ? (
+                                    <div className="hidden group-hover:flex items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing">
+                                        <GripVertical size={16} />
+                                    </div>
+                                ) : null}
+                                <span className={`block ${(isCurrent && isPlaying) || (onReorder && draggedIndex === null) ? 'group-hover:hidden' : ''} ${isCurrent && isPlaying ? 'hidden' : ''}`}>
+                                    {index + 1}
+                                </span>
                                 <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-text-primary`}>
                                     {isCurrent && isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
                                 </span>

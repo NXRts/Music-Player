@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { X, Download, Upload, Database, CheckCircle, AlertCircle, Moon, Sun, Palette, Settings } from 'lucide-react';
+import { X, Download, Upload, Database, CheckCircle, AlertCircle, Moon, Sun, Palette, Settings, Clock } from 'lucide-react';
 import { exportData, importData } from '../services/db';
 
-const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor, crossfadeDuration, setCrossfadeDuration }) => {
+const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor, crossfadeDuration, setCrossfadeDuration, onSetSleepTimer, isSleepTimerActive }) => {
     const fileInputRef = useRef(null);
     const [status, setStatus] = useState(null); // 'success', 'error', or null
 
@@ -137,6 +137,37 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-border-subtle"></div>
+
+                    {/* Sleep Timer Section */}
+                    <div>
+                        <h3 className="text-text-primary font-bold text-lg mb-4 flex items-center gap-2">
+                            <Clock size={20} className="text-accent" /> Sleep Timer
+                        </h3>
+                        <p className="text-text-secondary text-sm mb-4">
+                            Automatically stop music playback after a set duration.
+                            {isSleepTimerActive && <span className="ml-2 text-accent font-bold animate-pulse">• Active</span>}
+                        </p>
+
+                        <div className="grid grid-cols-5 gap-2">
+                            {[15, 30, 45, 60].map(mins => (
+                                <button
+                                    key={mins}
+                                    onClick={() => onSetSleepTimer(mins)}
+                                    className="p-2 rounded-lg bg-bg-highlight hover:bg-opacity-80 border border-border-subtle transition font-bold text-sm text-text-primary hover:border-accent"
+                                >
+                                    {mins}m
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => onSetSleepTimer(0)}
+                                className="p-2 rounded-lg bg-bg-highlight hover:bg-opacity-80 border border-border-subtle transition font-bold text-sm text-red-500 hover:border-red-500"
+                            >
+                                Off
+                            </button>
                         </div>
                     </div>
 
