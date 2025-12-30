@@ -172,6 +172,10 @@ function App() {
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     }
 
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+
     if (!analyserRef.current) {
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
@@ -300,20 +304,6 @@ function App() {
 
         setSongs(songsWithUrls);
         setPlaylists(storedPlaylists);
-
-        const lastSongId = localStorage.getItem('lastPlayedSongId');
-        const lastTime = parseFloat(localStorage.getItem('lastPlayedTime'));
-        const songToResume = songsWithUrls.find(s => String(s.id) === String(lastSongId));
-
-        if (songToResume && !currentSong) {
-          setCurrentSong(songToResume);
-          const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
-          if (activeAudio && songToResume.src) {
-            activeAudio.src = songToResume.src;
-            activeAudio.currentTime = lastTime || 0;
-            setCurrentTime(lastTime || 0);
-          }
-        }
       } catch (error) {
         console.error("Failed to load data:", error);
       }
@@ -321,23 +311,6 @@ function App() {
     loadData();
   }, []);
 
-  // Save Playback State
-  useEffect(() => {
-    if (currentSong) {
-      localStorage.setItem('lastPlayedSongId', currentSong.id);
-    }
-  }, [currentSong]);
-
-  useEffect(() => {
-    // throttle saving time to avoid blasting localStorage
-    const interval = setInterval(() => {
-      const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
-      if (isPlaying && activeAudio) {
-        localStorage.setItem('lastPlayedTime', activeAudio.currentTime);
-      }
-    }, 5000); // Save every 5 seconds
-    return () => clearInterval(interval);
-  }, [isPlaying, activePlayer]);
 
 
 
@@ -924,6 +897,7 @@ function App() {
   }, [isPlaying, volume, isMuted]); // Note: handlePlayPause, __handleSeek, toggleMute are likely stable or closured, check deps.
 
   const handlePlayPause = () => {
+    setupAudioContext();
     const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
     if (isPlaying) {
       if (activeAudio) activeAudio.pause();
@@ -932,13 +906,13 @@ function App() {
       if (activeAudio) {
         activeAudio.play().then(() => {
           setIsPlaying(true);
-          setupAudioContext();
         }).catch(e => console.error(e));
       }
     }
   };
 
   const handleSongSelect = (song, context = null, forceNoCrossfade = false) => {
+    setupAudioContext();
     // Set playback context if provided
     if (context) {
       setPlaybackContext(context);
@@ -994,7 +968,6 @@ function App() {
       if (shouldPlay) {
         activeAudio.play().then(() => {
           setIsPlaying(true);
-          setupAudioContext();
           // Auto-open lyrics sidebar ONLY on desktop
           if (window.innerWidth >= 768) {
             setShowLyrics(true);
@@ -1066,11 +1039,11 @@ function App() {
     }
 
     navigator.mediaSession.setActionHandler('play', () => {
+      setupAudioContext();
       const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
       if (activeAudio) {
         activeAudio.play().then(() => {
           setIsPlaying(true);
-          setupAudioContext();
         }).catch(console.error);
       }
     });
