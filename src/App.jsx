@@ -760,11 +760,11 @@ function App() {
 
 
 
-  const skipNext = () => {
+  const skipNext = (forceNoCrossfade = false) => {
     if (queue.length > 0) {
       const nextSong = queue[0];
       setQueue(prev => prev.slice(1));
-      handleSongSelect(nextSong);
+      handleSongSelect(nextSong, null, forceNoCrossfade);
       return;
     }
 
@@ -783,10 +783,10 @@ function App() {
     }
 
     const nextSong = context[nextIndex];
-    handleSongSelect(nextSong);
+    handleSongSelect(nextSong, null, forceNoCrossfade);
   };
 
-  const skipPrev = () => {
+  const skipPrev = (forceNoCrossfade = false) => {
     const context = playbackContext.length > 0 ? playbackContext : songs;
     if (context.length === 0) return;
 
@@ -794,7 +794,7 @@ function App() {
     const prevIndex = (currentIndex - 1 + context.length) % context.length;
 
     const prevSong = context[prevIndex];
-    handleSongSelect(prevSong);
+    handleSongSelect(prevSong, null, forceNoCrossfade);
   };
 
   // --- Keyboard Shortcuts ---
@@ -873,7 +873,7 @@ function App() {
       }
 
       // Repeat All (1) or Normal Next
-      skipNext();
+      skipNext(true);
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -887,35 +887,6 @@ function App() {
     }
   }, [currentSong, isShuffle, songs, repeatMode, activePlayer]); // Added activePlayer dependency
 
-  // Gapless / Auto-Crossfade trigger
-  useEffect(() => {
-    const audio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
-    if (!audio || !isPlaying || crossfadeDuration === 0) return;
-
-    const checkCrossfade = () => {
-      if (audio.duration && audio.duration - audio.currentTime < crossfadeDuration) {
-        // Find next song
-        const currentIndex = songs.findIndex(s => s.id === currentSong?.id);
-        if (currentIndex === -1) return;
-
-        let nextIndex;
-        if (isShuffle) {
-          nextIndex = Math.floor(Math.random() * songs.length);
-        } else {
-          nextIndex = (currentIndex + 1) % songs.length;
-        }
-
-        const nextSong = songs[nextIndex];
-        if (nextSong && nextSong.id !== currentSong?.id) {
-          audio.removeEventListener('timeupdate', checkCrossfade);
-          performCrossfade(nextSong);
-        }
-      }
-    };
-
-    audio.addEventListener('timeupdate', checkCrossfade);
-    return () => audio.removeEventListener('timeupdate', checkCrossfade);
-  }, [currentSong, isPlaying, crossfadeDuration, songs, isShuffle, activePlayer]);
 
   useEffect(() => {
     const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
@@ -1034,7 +1005,7 @@ function App() {
     }
   };
 
-  const handleSongSelect = (song, context = null) => {
+  const handleSongSelect = (song, context = null, forceNoCrossfade = false) => {
     // Set playback context if provided
     if (context) {
       setPlaybackContext(context);
@@ -1042,11 +1013,19 @@ function App() {
       setPlaybackContext(songs);
     }
 
+    // Smart logic for clicking current song
+    if (currentSong && currentSong.id === song.id) {
+      if (!isPlaying) {
+        handlePlayPause(); // Resume if paused
+      }
+      return; // Do nothing if already playing current song
+    }
+
     // Increment play count
     const updatedPlayCount = (song.playCount || 0) + 1;
     handleUpdateSongData(song.id, { playCount: updatedPlayCount });
 
-    if (currentSong && isPlaying) {
+    if (currentSong && isPlaying && crossfadeDuration > 0 && !forceNoCrossfade) {
       performCrossfade(song);
     } else {
       __playSong(song);
