@@ -50,7 +50,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [accentColor, setAccentColor] = useState(localStorage.getItem('accentColor') || '#1db954');
-  const [crossfadeDuration, setCrossfadeDuration] = useState(parseInt(localStorage.getItem('crossfadeDuration') || '5'));
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
   const sleepTimerRef = useRef(null);
@@ -73,8 +72,7 @@ function App() {
     // Save to local storage
     localStorage.setItem('theme', theme);
     localStorage.setItem('accentColor', accentColor);
-    localStorage.setItem('crossfadeDuration', crossfadeDuration);
-  }, [theme, accentColor, crossfadeDuration]);
+  }, [theme, accentColor]);
 
   const handleUpdateSongData = async (songId, newData) => {
     // Update local state
@@ -342,101 +340,7 @@ function App() {
   }, [isPlaying, activePlayer]);
 
 
-  // --- SMART FADING LOGIC ---
-  const fadeOut = (callback) => {
-    const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
-    if (!activeAudio) return;
-    const fadeAudio = activeAudio;
-    const startVolume = fadeAudio.volume;
-    const fadeDuration = 300; // ms
-    const fadeStep = 50; // ms
-    const stepValue = startVolume / (fadeDuration / fadeStep);
 
-    let currentStep = 0;
-    const fadeInterval = setInterval(() => {
-      currentStep++;
-      if (fadeAudio.volume > stepValue) {
-        fadeAudio.volume = Math.max(0, fadeAudio.volume - stepValue);
-      } else {
-        fadeAudio.volume = 0;
-        clearInterval(fadeInterval);
-        if (callback) callback();
-      }
-    }, fadeStep);
-  };
-
-  const fadeIn = (specificAudio) => {
-    const activeAudio = specificAudio || (activePlayer === 1 ? audioRef1.current : audioRef2.current);
-    if (!activeAudio) return;
-    const fadeAudio = activeAudio;
-    fadeAudio.volume = 0;
-    const targetVolume = isMuted ? 0 : volume;
-    const fadeDuration = 500; // ms
-    const fadeStep = 50; // ms
-    const stepValue = targetVolume / (fadeDuration / fadeStep);
-
-    let currentStep = 0;
-    const fadeInterval = setInterval(() => {
-      currentStep++;
-      if (fadeAudio.volume < targetVolume - stepValue) {
-        fadeAudio.volume += stepValue;
-      } else {
-        fadeAudio.volume = targetVolume;
-        clearInterval(fadeInterval);
-      }
-    }, fadeStep);
-  };
-
-  const performCrossfade = (nextSong) => {
-    setupAudioContext();
-    const ctx = audioContextRef.current;
-    if (!ctx) return;
-
-    const currentPlayerNum = activePlayer;
-    const nextPlayerNum = activePlayer === 1 ? 2 : 1;
-    const currentPlayer = currentPlayerNum === 1 ? audioRef1.current : audioRef2.current;
-    const nextPlayer = nextPlayerNum === 1 ? audioRef1.current : audioRef2.current;
-    const currentGain = currentPlayerNum === 1 ? gainNode1.current : gainNode2.current;
-    const nextGain = nextPlayerNum === 1 ? gainNode1.current : gainNode2.current;
-
-    if (!currentPlayer || !nextPlayer || !currentGain || !nextGain) {
-      // Fallback if audio graph not ready
-      __playSong(nextSong);
-      return;
-    }
-
-    const duration = crossfadeDuration;
-    const now = ctx.currentTime;
-
-    // Prepare next player
-    nextPlayer.src = nextSong.src;
-    nextPlayer.volume = isMuted ? 0 : volume;
-    nextGain.gain.cancelScheduledValues(now);
-    currentGain.gain.cancelScheduledValues(now);
-
-    nextGain.gain.setValueAtTime(0, now);
-    nextGain.gain.linearRampToValueAtTime(1, now + duration);
-
-    nextPlayer.play().then(() => {
-      // Start fading out current
-      currentGain.gain.setValueAtTime(1, now);
-      currentGain.gain.linearRampToValueAtTime(0, now + duration);
-
-      // Switch UI state immediately
-      setActivePlayer(nextPlayerNum);
-      setCurrentSong(nextSong);
-      setCurrentTime(nextPlayer.currentTime || 0);
-      setDuration(nextPlayer.duration || 0);
-
-      setTimeout(() => {
-        currentPlayer.pause();
-        currentPlayer.currentTime = 0;
-      }, duration * 1000);
-    }).catch(e => {
-      console.error("Crossfade play failed", e);
-      __playSong(nextSong); // fallback
-    });
-  };
 
   const handleNavigate = (view) => {
     setCurrentView(view);
@@ -473,22 +377,37 @@ function App() {
       let processedCount = 0;
       const newSongs = [];
 
+      const existingSongs = [...songs];
+      const titlesInBatch = new Set();
+
       for (const fileObj of audioFiles) {
         const { handle, path } = fileObj;
         const file = await handle.getFile();
 
+        const metadata = await getSongMetadata(file);
+        const title = metadata.title || file.name.replace(/\.[^/.]+$/, "");
+        const artist = metadata.artist || "Unknown Artist";
+
         // Skip if already in library
-        if (songs.some(s => s.title === file.name.replace(/\.[^/.]+$/, "") && s.size === file.size)) {
+        const isDuplicate = existingSongs.some(s =>
+          (s.title === title && s.artist === artist) ||
+          (s.title === file.name.replace(/\.[^/.]+$/, "") && s.size === file.size)
+        ) || titlesInBatch.has(`${title}-${artist}`);
+
+        if (isDuplicate) {
           continue;
         }
 
-        const metadata = await getSongMetadata(file);
-        const duration = await getAudioDuration(file);
+        const durationSeconds = await getAudioDuration(file);
+        const formattedDuration = formatDuration(durationSeconds);
 
         const songData = {
           id: Date.now() + Math.random(),
-          ...metadata,
-          duration,
+          title,
+          artist,
+          album: metadata.album || "Unknown Album",
+          cover: metadata.cover,
+          duration: formattedDuration,
           size: file.size,
           type: 'local',
           fileHandle: handle,
@@ -500,6 +419,7 @@ function App() {
 
         await saveSong(songData);
         newSongs.push(songData);
+        titlesInBatch.add(`${title}-${artist}`);
         processedCount++;
 
         if (processedCount % 5 === 0) {
@@ -578,6 +498,7 @@ function App() {
     setSongToAdd(null);
     alert(`Added to ${playlist.name}`);
   };
+
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
@@ -988,18 +909,13 @@ function App() {
   const handlePlayPause = () => {
     const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
     if (isPlaying) {
-      // Fade out then pause
-      fadeOut(() => {
-        if (activeAudio) activeAudio.pause();
-        setIsPlaying(false);
-      });
+      if (activeAudio) activeAudio.pause();
+      setIsPlaying(false);
     } else {
-      // Play then fade in
       if (activeAudio) {
         activeAudio.play().then(() => {
-          fadeIn(); // Fade in new song
           setIsPlaying(true);
-          setupAudioContext(); // Ensure/resume context
+          setupAudioContext();
         }).catch(e => console.error(e));
       }
     }
@@ -1025,11 +941,7 @@ function App() {
     const updatedPlayCount = (song.playCount || 0) + 1;
     handleUpdateSongData(song.id, { playCount: updatedPlayCount });
 
-    if (currentSong && isPlaying && crossfadeDuration > 0 && !forceNoCrossfade) {
-      performCrossfade(song);
-    } else {
-      __playSong(song);
-    }
+    __playSong(song);
   };
 
   const __playSong = async (song, shouldPlay = true) => {
@@ -1064,7 +976,6 @@ function App() {
       activeAudio.src = songSrc;
       if (shouldPlay) {
         activeAudio.play().then(() => {
-          fadeIn(); // Fade in new song
           setIsPlaying(true);
           setupAudioContext();
           // Auto-open lyrics sidebar ONLY on desktop
@@ -1141,7 +1052,6 @@ function App() {
       const activeAudio = activePlayer === 1 ? audioRef1.current : audioRef2.current;
       if (activeAudio) {
         activeAudio.play().then(() => {
-          fadeIn();
           setIsPlaying(true);
           setupAudioContext();
         }).catch(console.error);
@@ -1612,8 +1522,6 @@ function App() {
           setTheme={setTheme}
           accentColor={accentColor}
           setAccentColor={setAccentColor}
-          crossfadeDuration={crossfadeDuration}
-          setCrossfadeDuration={setCrossfadeDuration}
           onSetSleepTimer={handleSetSleepTimer}
           isSleepTimerActive={isSleepTimerActive}
         />

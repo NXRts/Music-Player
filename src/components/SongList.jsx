@@ -117,7 +117,9 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                             </div>
 
                             <div className="hidden md:flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
-                                {song.duration}
+                                {typeof song.duration === 'number' ?
+                                    (Math.floor(song.duration / 60) + ":" + String(Math.floor(song.duration % 60)).padStart(2, '0')) :
+                                    song.duration}
                             </div>
 
                             {/* Options Menu Button column */}
