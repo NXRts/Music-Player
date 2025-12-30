@@ -81,20 +81,29 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onAddToPl
                             onClick={() => onSelect(song)}
                             className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
                         >
-                            <div className="w-8 flex items-center justify-center relative">
-                                {onReorder ? (
-                                    <div className="hidden group-hover:flex items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing">
-                                        <GripVertical size={16} />
+                            <div className="w-8 flex items-center justify-center relative min-w-[32px]">
+                                {onReorder && (
+                                    <div className="hidden group-hover:flex absolute -left-2 items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing">
+                                        <GripVertical size={14} />
                                     </div>
-                                ) : null}
-                                <span className={`block ${(isCurrent && isPlaying) || (onReorder && draggedIndex === null) ? 'group-hover:hidden' : ''} ${isCurrent && isPlaying ? 'hidden' : ''}`}>
-                                    {index + 1}
-                                </span>
-                                <span className={`hidden ${isCurrent && isPlaying ? 'block' : 'group-hover:block'} text-text-primary`}>
-                                    {isCurrent && isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
-                                </span>
-                                {isCurrent && isPlaying && (
-                                    <img src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif" className="absolute w-4 h-4" alt="playing" />
+                                )}
+
+                                {isCurrent && isPlaying ? (
+                                    <>
+                                        <img
+                                            src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif"
+                                            className="w-4 h-4 group-hover:hidden"
+                                            alt="playing"
+                                        />
+                                        <Pause size={16} fill="currentColor" className="hidden group-hover:block text-accent" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className={`text-sm font-medium group-hover:hidden ${isCurrent ? 'text-accent' : ''}`}>
+                                            {index + 1}
+                                        </span>
+                                        <Play size={16} fill="currentColor" className="hidden group-hover:block text-text-primary" />
+                                    </>
                                 )}
                             </div>
 
