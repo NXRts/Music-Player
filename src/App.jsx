@@ -776,6 +776,51 @@ function App() {
     handleSongSelect(prevSong);
   };
 
+  // --- Keyboard Shortcuts ---
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if typing in an input
+      const isInput = document.activeElement.tagName === 'INPUT' ||
+        document.activeElement.tagName === 'TEXTAREA' ||
+        document.activeElement.isContentEditable;
+      if (isInput) return;
+
+      switch (e.key.toLowerCase()) {
+        case ' ': // Space
+          e.preventDefault();
+          handlePlayPause();
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          skipNext();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          skipPrev();
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          setVolume(prev => Math.min(1, prev + 0.05));
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          setVolume(prev => Math.max(0, prev - 0.05));
+          break;
+        case 'm':
+          setIsMuted(prev => !prev);
+          break;
+        case 'l':
+          if (currentSong) handleToggleLike(currentSong);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSong, isPlaying, playbackContext, songs]);
+
   const toggleRepeat = () => {
     setRepeatMode(prev => (prev + 1) % 3);
   };
