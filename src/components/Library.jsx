@@ -71,23 +71,25 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
     }
 
     return (
-        <div className="p-6 md:p-8 text-white h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold">Your Library</h2>
-                <div className="flex items-center gap-3">
+        <div className="p-4 md:p-8 text-white h-full flex flex-col">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <h2 className="text-2xl md:text-3xl font-bold">Your Library</h2>
+                <div className="flex items-center gap-2 md:gap-3">
                     <button
                         onClick={() => onAddMusic()}
-                        className="flex items-center gap-2 bg-accent text-black font-bold px-4 py-2 rounded-full hover:scale-105 transition"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-accent text-black font-bold px-3 md:px-4 py-2 rounded-full hover:scale-105 transition text-sm"
                     >
-                        <Upload size={20} />
-                        Add Music
+                        <Upload size={18} />
+                        <span className="md:inline hidden">Add Music</span>
+                        <span className="md:hidden">Add</span>
                     </button>
                     <button
                         onClick={onCreatePlaylist}
-                        className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-full hover:scale-105 transition"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white text-black font-bold px-3 md:px-4 py-2 rounded-full hover:scale-105 transition text-sm"
                     >
-                        <Plus size={20} />
-                        Create Playlist
+                        <Plus size={18} />
+                        <span className="md:inline hidden">Create Playlist</span>
+                        <span className="md:hidden">Create</span>
                     </button>
                 </div>
             </div>
