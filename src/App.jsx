@@ -1174,9 +1174,9 @@ function App() {
                       return (
                         <div key={playlist.id} className="flex items-center bg-bg-card hover:bg-bg-highlight transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
                           {cover && !cover.includes('placehold.co') ? (
-                            <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
+                            <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg border-r border-border-subtle" />
                           ) : (
-                            <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
+                            <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg border-r border-border-subtle">
                               <Music size={32} />
                             </div>
                           )}
@@ -1399,9 +1399,19 @@ function App() {
                   <button onClick={() => setCurrentView('library')} className="hover:text-white text-text-secondary">
                     <ArrowLeft size={24} />
                   </button>
-                  <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg">
-                    <Music size={32} />
-                  </div>
+                  {(() => {
+                    const firstSongId = activePlaylist.songIds[0];
+                    const firstSong = firstSongId ? songs.find(s => s.id === firstSongId) : null;
+                    const cover = firstSong ? firstSong.cover : null;
+
+                    return cover && !cover.includes('placehold.co') ? (
+                      <img src={cover} alt={activePlaylist.name} className="w-16 h-16 object-cover shadow-lg rounded border border-border-subtle" />
+                    ) : (
+                      <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg border border-border-subtle">
+                        <Music size={32} />
+                      </div>
+                    );
+                  })()}
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold">{activePlaylist.name}</h2>
                     <p className="text-sm text-text-secondary">{activePlaylist.songIds.length} songs</p>

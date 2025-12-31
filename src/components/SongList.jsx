@@ -119,12 +119,12 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                             </div>
 
                             <div className="flex items-center gap-3 overflow-hidden">
-                                {song.cover && song.cover.includes('placehold.co') ? (
-                                    <div className="w-10 h-10 min-w-10 min-h-10 rounded shadow-sm bg-bg-highlight flex items-center justify-center text-text-secondary">
+                                {!song.cover || song.cover.includes('placehold.co') ? (
+                                    <div className="w-10 h-10 min-w-10 min-h-10 rounded shadow-sm bg-bg-highlight flex items-center justify-center text-text-secondary border border-border-subtle">
                                         <Music size={20} />
                                     </div>
                                 ) : (
-                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm object-cover" />
+                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm object-cover border border-border-subtle" />
                                 )}
                                 <div className="flex flex-col truncate">
                                     <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-text-primary'}`}>{song.title}</span>
