@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart, Moon, Sliders } from 'lucide-react';
+import { Shuffle, SkipBack, Play, Pause, SkipForward, Repeat, Mic2, ListMusic, Volume2, Volume1, VolumeX, Music, Heart, Moon, Sliders, MoreVertical } from 'lucide-react';
 
 const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, duration, onSeek, onSkipNext, onSkipPrev, isShuffle, onToggleShuffle, volume, onVolumeChange, isMuted, onToggleMute, repeatMode, onToggleRepeat, onToggleLyrics, isLyricsOpen, onToggleLike, onToggleQueue, isSleepTimerActive, onSetSleepTimer, onToggleEqualizer }) => {
     const [showSleepMenu, setShowSleepMenu] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const sleepMenuRef = useRef(null);
+    const mobileMenuRef = useRef(null);
 
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (sleepMenuRef.current && !sleepMenuRef.current.contains(event.target)) {
                 setShowSleepMenu(false);
+            }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setShowMobileMenu(false);
             }
         };
 
@@ -58,11 +63,11 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
             </div>
 
             {/* Center Controls */}
-            <div className="flex flex-col items-center w-auto md:w-1/2 max-w-[600px]">
-                <div className="flex items-center gap-6 mb-2">
+            <div className="flex flex-col items-center flex-1 md:w-1/2 max-w-[600px] gap-1">
+                <div className="flex items-center gap-4 sm:gap-6 mb-1 md:mb-2">
                     <button
                         onClick={onToggleShuffle}
-                        className={`hover:text-text-primary transition ${isShuffle ? 'text-accent' : 'text-text-secondary'}`}
+                        className={`hover:text-text-primary transition ${isShuffle ? 'text-accent' : 'text-text-secondary'} hidden md:block`}
                         title="Shuffle"
                     >
                         <Shuffle size={20} />
@@ -71,7 +76,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         <SkipBack size={24} fill="currentColor" />
                     </button>
                     <button
-                        className="bg-text-primary text-bg-primary rounded-full p-2 hover:scale-105 transition"
+                        className="bg-text-primary text-bg-primary rounded-full p-2.5 hover:scale-105 transition shadow-lg"
                         onClick={onPlayPause}
                     >
                         {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
@@ -81,7 +86,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                     </button>
                     <button
                         onClick={onToggleRepeat}
-                        className={`hover:text-text-primary transition ${repeatMode > 0 ? 'text-accent' : 'text-text-secondary'} relative`}
+                        className={`hover:text-text-primary transition ${repeatMode > 0 ? 'text-accent' : 'text-text-secondary'} relative hidden md:block`}
                         title="Repeat"
                     >
                         <Repeat size={20} />
@@ -89,22 +94,56 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                             <span className="absolute -top-1 -right-1 text-[8px] bg-accent text-black rounded-full w-3 h-3 flex items-center justify-center font-bold">1</span>
                         )}
                     </button>
+
+                    {/* Mobile Menu Trigger */}
+                    <div className="md:hidden relative" ref={mobileMenuRef}>
+                        <button
+                            onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            className={`p-2 rounded-full hover:bg-white/10 transition ${showMobileMenu ? 'text-accent' : 'text-text-secondary'}`}
+                        >
+                            <MoreVertical size={24} />
+                        </button>
+
+                        {showMobileMenu && (
+                            <div className="absolute bottom-full mb-4 right-0 bg-bg-highlight border border-white/10 rounded-2xl shadow-2xl py-3 w-56 z-[200] animate-in slide-in-from-bottom-5 duration-300">
+                                <div className="px-4 py-2 text-xs font-bold text-text-secondary uppercase tracking-widest border-b border-white/5 mb-2">Options</div>
+                                <button onClick={() => { onToggleShuffle(); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${isShuffle ? 'text-accent' : 'text-text-primary'}`}>
+                                    <Shuffle size={20} /> <span className="text-sm font-medium">Shuffle</span>
+                                </button>
+                                <button onClick={() => { onToggleRepeat(); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${repeatMode > 0 ? 'text-accent' : 'text-text-primary'}`}>
+                                    <Repeat size={20} /> <span className="text-sm font-medium">Repeat {repeatMode === 2 ? '(One)' : ''}</span>
+                                </button>
+                                <button onClick={() => { onToggleLyrics(); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${isLyricsOpen ? 'text-accent' : 'text-text-primary'}`}>
+                                    <Mic2 size={20} /> <span className="text-sm font-medium">Lyrics</span>
+                                </button>
+                                <button onClick={() => { onToggleEqualizer(); setShowMobileMenu(false); }} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors text-text-primary">
+                                    <Sliders size={20} /> <span className="text-sm font-medium">Equalizer</span>
+                                </button>
+                                <button onClick={() => { setShowSleepMenu(true); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${isSleepTimerActive ? 'text-accent' : 'text-text-primary'}`}>
+                                    <Moon size={20} /> <span className="text-sm font-medium">Sleep Timer</span>
+                                </button>
+                                <button onClick={() => { onToggleQueue(); setShowMobileMenu(false); }} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors text-text-primary">
+                                    <ListMusic size={20} /> <span className="text-sm font-medium">Open Queue</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full text-xs text-text-secondary">
-                    <span>{formatTime(currentTime)}</span>
+                <div className="flex items-center gap-2 w-full text-[10px] md:text-xs text-text-secondary px-1 sm:px-4">
+                    <span className="min-w-[32px]">{formatTime(currentTime)}</span>
                     <input
                         type="range"
                         min={0}
                         max={duration || 0}
                         value={currentTime}
                         onChange={(e) => onSeek(parseFloat(e.target.value))}
-                        className="flex-1 h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-110 transition-all group"
+                        className="flex-1 h-1 bg-bg-highlight rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 md:[&::-webkit-slider-thumb]:w-3 md:[&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-text-primary [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:scale-110 transition-all group"
                         style={{
                             backgroundImage: `linear-gradient(to right, var(--color-text-primary) ${(currentTime / (duration || 1)) * 100}%, var(--color-border-subtle) ${(currentTime / (duration || 1)) * 100}%)`
                         }}
                     />
-                    <span>{formatTime(duration)}</span>
+                    <span className="min-w-[32px] text-right">{formatTime(duration)}</span>
                 </div>
             </div>
 

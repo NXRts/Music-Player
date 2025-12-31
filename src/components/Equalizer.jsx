@@ -47,7 +47,7 @@ const Equalizer = ({ gains, onUpdateGain, onClose }) => {
     return (
         <div
             onMouseMove={resetTimer}
-            className="absolute bottom-24 right-4 bg-bg-card border border-border-subtle p-5 rounded-2xl shadow-2xl z-[100] w-72 animate-in slide-in-from-bottom-5 duration-200"
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-4 bg-bg-card border border-border-subtle p-5 rounded-2xl shadow-2xl z-[100] w-[calc(100%-24px)] md:w-80 animate-in slide-in-from-bottom-5 duration-200"
         >
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-text-primary font-bold text-lg flex items-center gap-2">

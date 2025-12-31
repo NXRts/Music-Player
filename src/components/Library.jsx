@@ -134,7 +134,7 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
                             <button onClick={onCreatePlaylist} className="mt-4 bg-white text-black font-bold px-8 py-3 rounded-full hover:scale-105 transition">Create Playlist</button>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {playlists.map(playlist => (
                                 <div key={playlist.id} onClick={() => onSelectPlaylist(playlist)} className="bg-bg-highlight bg-opacity-40 hover:bg-opacity-100 p-4 rounded-md cursor-pointer group transition flex flex-col gap-4 relative">
                                     <div className="aspect-square bg-bg-card shadow-lg rounded-md flex items-center justify-center text-text-secondary">

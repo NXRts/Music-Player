@@ -90,7 +90,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                             onDragLeave={() => setDragOverIndex(null)}
                             onDrop={(e) => handleDrop(e, index)}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
+                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3.5 md:py-3 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
                         >
                             <div className="w-8 flex items-center justify-center relative min-w-[32px]">
                                 {onReorder && (
@@ -145,7 +145,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                             {/* Options Menu Button column */}
                             <div className="relative flex justify-center items-center gap-1">
                                 <button
-                                    className="p-2 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary z-20 transition"
+                                    className="p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary z-20 transition"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAddToPlaylist && onAddToPlaylist(song.id);
@@ -155,7 +155,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                                     <Plus size={20} />
                                 </button>
                                 <button
-                                    className={`p-2 rounded-full hover:text-text-primary hover:bg-bg-highlight z-20 transition ${activeMenu === song.id ? 'text-text-primary' : 'text-text-secondary'}`}
+                                    className={`p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight z-20 transition ${activeMenu === song.id ? 'text-text-primary' : 'text-text-secondary'}`}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setActiveMenu(activeMenu === song.id ? null : song.id);
