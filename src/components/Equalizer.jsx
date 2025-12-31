@@ -60,7 +60,7 @@ const Equalizer = ({ gains, onUpdateGain, onClose }) => {
             </div>
 
             {/* Presets Dropdown */}
-            <div className="mb-6">
+            <div className="mb-10">
                 <label className="text-[10px] uppercase font-bold text-text-secondary mb-2 block tracking-wider">Presets</label>
                 <select
                     onChange={(e) => handlePresetChange(e.target.value)}
@@ -77,7 +77,7 @@ const Equalizer = ({ gains, onUpdateGain, onClose }) => {
                 </select>
             </div>
 
-            <div className="flex justify-between h-40 gap-3">
+            <div className="flex justify-between h-40 gap-3 mt-2">
                 {bands.map((band, index) => (
                     <div key={index} className="flex flex-col items-center flex-1 relative group">
                         <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-bg-highlight px-1.5 rounded text-[10px] font-bold text-accent border border-border-subtle">
