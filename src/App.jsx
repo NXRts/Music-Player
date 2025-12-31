@@ -331,8 +331,22 @@ function App() {
           return song;
         });
 
+        // Clean up playlists: remove songIds that no longer exist
+        const validSongIds = new Set(songsWithUrls.map(s => s.id));
+        const cleanedPlaylists = storedPlaylists.map(playlist => {
+          const validSongIdsInPlaylist = playlist.songIds.filter(id => validSongIds.has(id));
+
+          // Only update if there are invalid IDs
+          if (validSongIdsInPlaylist.length !== playlist.songIds.length) {
+            const updatedPlaylist = { ...playlist, songIds: validSongIdsInPlaylist };
+            savePlaylist(updatedPlaylist); // Save cleaned playlist to DB
+            return updatedPlaylist;
+          }
+          return playlist;
+        });
+
         setSongs(songsWithUrls);
-        setPlaylists(storedPlaylists);
+        setPlaylists(cleanedPlaylists);
       } catch (error) {
         console.error("Failed to load data:", error);
       }
@@ -473,6 +487,7 @@ function App() {
   const handleSelectPlaylist = (playlist) => {
     setActivePlaylist(playlist);
     setCurrentView('playlist-detail');
+    setIsMobileMenuOpen(false);
   };
 
   const handleAddToPlaylist = (songId) => {
@@ -1126,6 +1141,8 @@ function App() {
         isMobileOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         onOpenSettings={() => { setShowSettings(true); setIsMobileMenuOpen(false); }}
+        playlists={playlists}
+        onSelectPlaylist={handleSelectPlaylist}
       />
 
       <div className="flex-1 flex flex-col relative w-full">
@@ -1414,7 +1431,9 @@ function App() {
                   })()}
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold">{activePlaylist.name}</h2>
-                    <p className="text-sm text-text-secondary">{activePlaylist.songIds.length} songs</p>
+                    <p className="text-sm text-text-secondary">
+                      {songs.filter(s => activePlaylist.songIds.includes(s.id)).length} songs
+                    </p>
                   </div>
                   <button
                     onClick={() => {
@@ -1585,7 +1604,9 @@ function App() {
                   >
                     <Music size={20} className="mr-3 text-accent" />
                     <span className="font-bold">{p.name}</span>
-                    <span className="ml-auto text-sm text-text-secondary">{p.songIds.length} songs</span>
+                    <span className="ml-auto text-sm text-text-secondary">
+                      {songs.filter(s => p.songIds.includes(s.id)).length} songs
+                    </span>
                   </button>
                 ))
               )}

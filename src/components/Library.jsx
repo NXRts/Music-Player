@@ -142,7 +142,9 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
                                     </div>
                                     <div>
                                         <h3 className="font-bold truncate">{playlist.name}</h3>
-                                        <p className="text-sm text-text-secondary">Playlist • {playlist.songIds.length} songs</p>
+                                        <p className="text-sm text-text-secondary">
+                                            Playlist • {songs.filter(s => playlist.songIds.includes(s.id)).length} songs
+                                        </p>
                                     </div>
                                     <button onClick={(e) => { e.stopPropagation(); if (window.confirm(`Delete playlist "${playlist.name}"?`)) onDeletePlaylist(playlist.id); }} className="absolute top-4 right-4 bg-black bg-opacity-50 p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition">
                                         <Trash2 size={16} />

@@ -1,6 +1,6 @@
 import { Home, Search, Library, PlusSquare, Heart, Upload, X, Activity, Settings, FolderSync } from 'lucide-react';
 
-const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePlaylist, isMobileOpen, onClose, onOpenSettings }) => {
+const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePlaylist, isMobileOpen, onClose, onOpenSettings, playlists = [], onSelectPlaylist }) => {
     return (
         <>
             {/* Mobile Overlay */}
@@ -112,13 +112,20 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePl
                         </div>
                     </div>
 
-                    <div className="mt-6 flex flex-col gap-4 mb-8">
-                        {['Chill Vibes', 'Gym Motivation', 'Coding Focus', 'Late Night Jazz', 'Discover Weekly'].map((playlist) => (
-                            <div key={playlist} className="hover:text-text-primary transition cursor-pointer truncate py-0.5">
-                                {playlist}
-                            </div>
-                        ))}
-                    </div>
+                    {playlists.length > 0 && (
+                        <div className="mt-6 flex flex-col gap-4 mb-8">
+                            <p className="text-xs uppercase text-text-secondary font-bold mb-2">Your Playlists</p>
+                            {playlists.slice(0, 6).map((playlist) => (
+                                <div
+                                    key={playlist.id}
+                                    className="hover:text-text-primary transition cursor-pointer truncate py-0.5"
+                                    onClick={() => onSelectPlaylist && onSelectPlaylist(playlist)}
+                                >
+                                    {playlist.name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <div className="mt-auto pt-8 border-t border-bg-highlight">
                         <div
