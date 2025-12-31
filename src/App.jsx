@@ -44,6 +44,9 @@ function App() {
   const [queue, setQueue] = useState([]);
   const [showEqualizer, setShowEqualizer] = useState(false);
   const [eqGains, setEqGains] = useState([0, 0, 0, 0, 0]);
+  const [isNormalizationEnabled, setIsNormalizationEnabled] = useState(() => {
+    return localStorage.getItem('isNormalizationEnabled') === 'true';
+  });
   const filtersRef = useRef([]);
   const [isDragging, setIsDragging] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
@@ -166,6 +169,7 @@ function App() {
   const sourceRef2 = useRef(null);
   const gainNode1 = useRef(null);
   const gainNode2 = useRef(null);
+  const compressorRef = useRef(null);
 
   const setupAudioContext = () => {
     if (!audioContextRef.current) {
@@ -179,6 +183,16 @@ function App() {
     if (!analyserRef.current) {
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
+    }
+
+    if (!compressorRef.current) {
+      compressorRef.current = audioContextRef.current.createDynamicsCompressor();
+      // Default normalization settings
+      compressorRef.current.threshold.value = -24;
+      compressorRef.current.knee.value = 30;
+      compressorRef.current.ratio.value = 12;
+      compressorRef.current.attack.value = 0.003;
+      compressorRef.current.release.value = 0.25;
     }
 
     // Initialize Filters if not passed
@@ -229,7 +243,15 @@ function App() {
         prevNode.connect(filter);
         prevNode = filter;
       });
-      prevNode.connect(audioContextRef.current.destination);
+
+      // Normalization check
+      try { prevNode.disconnect(); } catch (e) { }
+      if (isNormalizationEnabled) {
+        prevNode.connect(compressorRef.current);
+        compressorRef.current.connect(audioContextRef.current.destination);
+      } else {
+        prevNode.connect(audioContextRef.current.destination);
+      }
     }
 
     if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
@@ -247,9 +269,16 @@ function App() {
     }
   };
 
-  // ... (content remains same, no changes needed here if analysis holds) (keeping existing refs)
+  const toggleNormalization = () => {
+    const newValue = !isNormalizationEnabled;
+    setIsNormalizationEnabled(newValue);
+    localStorage.setItem('isNormalizationEnabled', newValue);
 
-  // ...
+    // Re-connect chain to apply/remove compressor
+    if (audioContextRef.current) {
+      setupAudioContext();
+    }
+  };
 
 
 
@@ -1514,6 +1543,8 @@ function App() {
           setAccentColor={setAccentColor}
           onSetSleepTimer={handleSetSleepTimer}
           isSleepTimerActive={isSleepTimerActive}
+          isNormalizationEnabled={isNormalizationEnabled}
+          onToggleNormalization={toggleNormalization}
         />
       )}
 

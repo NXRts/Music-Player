@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { X, Download, Upload, Database, CheckCircle, AlertCircle, Moon, Sun, Palette, Settings, Clock } from 'lucide-react';
 import { exportData, importData } from '../services/db';
 
-const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor, onSetSleepTimer, isSleepTimerActive }) => {
+const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, setAccentColor, onSetSleepTimer, isSleepTimerActive, isNormalizationEnabled, onToggleNormalization }) => {
     const fileInputRef = useRef(null);
     const [status, setStatus] = useState(null); // 'success', 'error', or null
 
@@ -118,6 +118,26 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                             </div>
                         </div>
                     </div>
+                    <div className="border-t border-border-subtle"></div>
+
+                    {/* Audio Section */}
+                    <div>
+                        <h3 className="text-text-primary font-bold text-lg mb-4 flex items-center gap-2">
+                            <Settings size={20} className="text-accent" /> Audio Features
+                        </h3>
+                        <div className="flex items-center justify-between p-4 bg-bg-highlight/50 rounded-xl border border-border-subtle">
+                            <div>
+                                <h4 className="font-bold text-text-primary">Peak Normalization</h4>
+                                <p className="text-xs text-text-secondary">Balance volume levels between different songs.</p>
+                            </div>
+                            <button
+                                onClick={onToggleNormalization}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${isNormalizationEnabled ? 'bg-accent' : 'bg-bg-highlight border border-border-subtle'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isNormalizationEnabled ? 'right-1' : 'left-1'}`}></div>
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="border-t border-border-subtle"></div>
 
@@ -203,7 +223,7 @@ const SettingsModal = ({ onClose, onDataRestored, theme, setTheme, accentColor, 
                     Music Player v1.1 • Built with React & Web Audio API
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

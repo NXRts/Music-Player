@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Save, Edit2, X } from 'lucide-react';
+import { Save, Edit2, X, Search } from 'lucide-react';
 import { parseLRC } from '../utils/lrcParser';
 
 const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [rawLyrics, setRawLyrics] = useState('');
+    const [isFetching, setIsFetching] = useState(false);
     const activeLineRef = useRef(null);
 
     useEffect(() => {
@@ -43,6 +44,38 @@ const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
     const handleSave = () => {
         onSaveLyrics(song.id, rawLyrics);
         setIsEditing(false);
+    };
+
+    const handleAutoFetch = async () => {
+        setIsFetching(true);
+        try {
+            const query = encodeURIComponent(`${song.title} ${song.artist}`);
+            const response = await fetch(`https://lrclib.net/api/search?q=${query}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                // Try to find exact match or just take the first result
+                const bestMatch = data.find(l =>
+                    l.name.toLowerCase() === song.title.toLowerCase() &&
+                    l.artistName.toLowerCase() === song.artist.toLowerCase()
+                ) || data[0];
+
+                const lyricsToUse = bestMatch.syncedLyrics || bestMatch.plainLyrics;
+                if (lyricsToUse) {
+                    setRawLyrics(lyricsToUse);
+                    onSaveLyrics(song.id, lyricsToUse);
+                } else {
+                    alert("No lyrics content found for this song.");
+                }
+            } else {
+                alert("Lyrics not found on LRCLIB.");
+            }
+        } catch (error) {
+            console.error("Lyrics fetch failed:", error);
+            alert("Gagal mengambil lirik. Periksa koneksi internet Anda.");
+        } finally {
+            setIsFetching(false);
+        }
     };
 
     if (!song) return null;
@@ -89,15 +122,26 @@ const LyricsView = ({ song, onClose, onSaveLyrics, currentTime = 0 }) => {
                 <div className="bg-[#1f1f1f] rounded-xl p-4 md:p-6 shadow-inner relative overflow-hidden group min-h-[200px]">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-lg">Lyrics</h3>
-                        {!isEditing && (
+                        <div className="flex gap-2">
                             <button
-                                onClick={() => setIsEditing(true)}
-                                className="p-2 hover:bg-bg-highlight rounded-full transition text-gray-400 hover:text-white"
-                                title="Edit Lyrics"
+                                onClick={handleAutoFetch}
+                                disabled={isFetching}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition ${isFetching ? 'bg-bg-highlight text-text-secondary cursor-not-allowed' : 'bg-accent/10 border border-accent/20 text-accent hover:bg-accent hover:text-white'}`}
+                                title="Search lyrics online (LRCLIB)"
                             >
-                                <Edit2 size={16} />
+                                <Search size={14} />
+                                {isFetching ? 'Searching...' : 'Find Online'}
                             </button>
-                        )}
+                            {!isEditing && (
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="p-2 hover:bg-bg-highlight rounded-full transition text-gray-400 hover:text-white"
+                                    title="Edit Lyrics"
+                                >
+                                    <Edit2 size={16} />
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {isEditing ? (
