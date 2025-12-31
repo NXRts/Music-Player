@@ -1,7 +1,23 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sliders } from 'lucide-react';
 
 const Equalizer = ({ gains, onUpdateGain, onClose }) => {
+    const timerRef = useRef(null);
+
+    const resetTimer = () => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => {
+            onClose();
+        }, 5000);
+    };
+
+    useEffect(() => {
+        resetTimer();
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [gains, onClose]);
+
     const bands = [
         { label: '60 Hz', value: 60, min: -12, max: 12 },
         { label: '230 Hz', value: 230, min: -12, max: 12 },
@@ -29,7 +45,10 @@ const Equalizer = ({ gains, onUpdateGain, onClose }) => {
     };
 
     return (
-        <div className="absolute bottom-24 right-4 bg-bg-card border border-border-subtle p-5 rounded-2xl shadow-2xl z-[100] w-72 animate-in slide-in-from-bottom-5 duration-200">
+        <div
+            onMouseMove={resetTimer}
+            className="absolute bottom-24 right-4 bg-bg-card border border-border-subtle p-5 rounded-2xl shadow-2xl z-[100] w-72 animate-in slide-in-from-bottom-5 duration-200"
+        >
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-text-primary font-bold text-lg flex items-center gap-2">
                     <Sliders size={20} className="text-accent" />
