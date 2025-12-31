@@ -53,7 +53,7 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePl
 
                 <div className="mx-4 border-t border-bg-highlight mb-4"></div>
 
-                <div className="flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-6 pb-28 md:pb-6 scrollbar-hide">
                     <div className="flex flex-col gap-4 mb-4">
                         <div
                             className="flex items-center gap-3 hover:text-text-primary transition cursor-pointer"
@@ -112,15 +112,15 @@ const Sidebar = ({ currentView, onNavigate, onAddMusic, onSyncFolder, onCreatePl
                         </div>
                     </div>
 
-                    <div className="mt-4 flex flex-col gap-3">
+                    <div className="mt-6 flex flex-col gap-4 mb-8">
                         {['Chill Vibes', 'Gym Motivation', 'Coding Focus', 'Late Night Jazz', 'Discover Weekly'].map((playlist) => (
-                            <div key={playlist} className="hover:text-text-primary transition cursor-pointer truncate">
+                            <div key={playlist} className="hover:text-text-primary transition cursor-pointer truncate py-0.5">
                                 {playlist}
                             </div>
                         ))}
                     </div>
 
-                    <div className="mt-auto pt-4 border-t border-bg-highlight">
+                    <div className="mt-auto pt-8 border-t border-bg-highlight">
                         <div
                             className="flex items-center gap-3 hover:text-text-primary transition cursor-pointer"
                             onClick={onOpenSettings}
