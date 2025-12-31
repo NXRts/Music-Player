@@ -137,7 +137,7 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {playlists.map(playlist => (
                                 <div key={playlist.id} onClick={() => onSelectPlaylist(playlist)} className="bg-bg-highlight bg-opacity-40 hover:bg-opacity-100 p-4 rounded-md cursor-pointer group transition flex flex-col gap-4 relative">
-                                    <div className="aspect-square bg-bg-card shadow-lg rounded-md flex items-center justify-center text-text-secondary border border-border-subtle">
+                                    <div className="aspect-square bg-bg-card shadow-lg rounded-md flex items-center justify-center text-text-secondary">
                                         <Music size={48} />
                                     </div>
                                     <div>
@@ -165,7 +165,7 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
                                 onClick={() => setSelectedGroup({ type: 'artist', name: artist.name })}
                                 className="bg-bg-highlight bg-opacity-40 hover:bg-opacity-100 p-4 rounded-md cursor-pointer group transition flex flex-col items-center text-center gap-4"
                             >
-                                <div className="w-32 h-32 rounded-full bg-bg-card shadow-lg flex items-center justify-center overflow-hidden border border-border-subtle">
+                                <div className="w-32 h-32 rounded-full bg-bg-card shadow-lg flex items-center justify-center overflow-hidden">
                                     {!artist.cover || artist.cover.includes('placehold.co') ? (
                                         <Mic2 size={40} className="text-text-secondary" />
                                     ) : (
@@ -189,7 +189,7 @@ const YourLibrary = ({ playlists, songs, onSelect, onCreatePlaylist, onSelectPla
                                 onClick={() => setSelectedGroup({ type: 'album', name: album.name })}
                                 className="bg-bg-highlight bg-opacity-40 hover:bg-opacity-100 p-4 rounded-md cursor-pointer group transition flex flex-col gap-4"
                             >
-                                <div className="aspect-square bg-bg-card shadow-lg rounded-md flex items-center justify-center overflow-hidden border border-border-subtle">
+                                <div className="aspect-square bg-bg-card shadow-lg rounded-md flex items-center justify-center overflow-hidden">
                                     {!album.cover || album.cover.includes('placehold.co') ? (
                                         <Disc size={48} className="text-text-secondary" />
                                     ) : (

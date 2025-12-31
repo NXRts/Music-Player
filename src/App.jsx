@@ -1174,9 +1174,9 @@ function App() {
                       return (
                         <div key={playlist.id} className="flex items-center bg-bg-card hover:bg-bg-highlight transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
                           {cover && !cover.includes('placehold.co') ? (
-                            <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg border-r border-border-subtle" />
+                            <img src={cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
                           ) : (
-                            <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg border-r border-border-subtle">
+                            <div className="w-20 h-20 min-w-[5rem] bg-bg-card flex items-center justify-center text-text-secondary shadow-lg">
                               <Music size={32} />
                             </div>
                           )}
@@ -1405,9 +1405,9 @@ function App() {
                     const cover = firstSong ? firstSong.cover : null;
 
                     return cover && !cover.includes('placehold.co') ? (
-                      <img src={cover} alt={activePlaylist.name} className="w-16 h-16 object-cover shadow-lg rounded border border-border-subtle" />
+                      <img src={cover} alt={activePlaylist.name} className="w-16 h-16 object-cover shadow-lg rounded" />
                     ) : (
-                      <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg border border-border-subtle">
+                      <div className="w-16 h-16 bg-bg-card flex items-center justify-center text-text-secondary rounded shadow-lg">
                         <Music size={32} />
                       </div>
                     );
