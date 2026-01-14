@@ -2,7 +2,7 @@
 
 A premium, feature-rich web-based music player built with **React** and **Vite**. This application offers advanced capabilities like local directory synchronization, smart playlists, and a stunning visual interface.
 
-![Music Player Preview](https://placehold.co/1200x600/121212/ffffff?text=Modern+Music+Player+Interface)
+![Music Player Preview](./src/assets/Music_Player.png)
 
 ## ✨ Key Features
 
