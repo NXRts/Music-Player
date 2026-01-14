@@ -4,6 +4,7 @@ import SettingsModal from './components/SettingsModal';
 import CreatePlaylistModal from './components/CreatePlaylistModal';
 
 import PlayerControls from './components/PlayerControls';
+import LoginModal from './components/LoginModal';
 import SongList from './components/SongList';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -56,6 +57,30 @@ function App() {
   const [showCreatePlaylistModal, setShowCreatePlaylistModal] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '' });
   const sleepTimerRef = useRef(null);
+  
+  // User Authentication State (Frontend Only)
+  const [user, setUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('music_player_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogin = (name) => {
+    const newUser = { name, joinedAt: Date.now() };
+    setUser(newUser);
+    localStorage.setItem('music_player_user', JSON.stringify(newUser));
+    showToast(`Welcome back, ${name}!`);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('music_player_user');
+    showToast('Logged out successfully');
+  };
 
   const showToast = (message) => {
     setToast({ show: true, message });
@@ -1148,6 +1173,9 @@ function App() {
       <div className="flex-1 flex flex-col relative w-full">
         <Header
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          user={user}
+          onLogin={() => setShowLoginModal(true)}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 flex overflow-hidden relative">
@@ -1156,7 +1184,7 @@ function App() {
             {currentView === 'home' && (
               <>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Good evening</h2>
+                  <h2 className="text-2xl font-bold">Good evening{user ? `, ${user.name}` : ''}</h2>
                   <div>
                     <button
                       onClick={() => fileInputRef.current.click()}
@@ -1542,6 +1570,13 @@ function App() {
             <CreatePlaylistModal
               onClose={() => setShowCreatePlaylistModal(false)}
               onCreate={finalizeCreatePlaylist}
+            />
+          )}
+          
+          {showLoginModal && (
+            <LoginModal 
+              onClose={() => setShowLoginModal(false)}
+              onLogin={handleLogin}
             />
           )}
         </div>
