@@ -1,6 +1,6 @@
-import { Menu, User, LogOut } from 'lucide-react';
+import { Menu, User, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const Header = ({ onOpenMobileMenu, user, onLogin, onLogout }) => {
+const Header = ({ onOpenMobileMenu, user, onLogin, onLogout, onBack, onForward, canGoBack, canGoForward }) => {
     return (
         <header className="h-16 flex items-center justify-between px-4 md:px-6 bg-bg-primary sticky top-0 z-10 transition-colors duration-200">
             <div className="flex gap-2 md:gap-4 items-center">
@@ -11,11 +11,19 @@ const Header = ({ onOpenMobileMenu, user, onLogin, onLogout }) => {
                     <Menu size={24} />
                 </button>
                 <div className="hidden md:flex gap-4">
-                    <button className="w-8 h-8 rounded-full bg-bg-highlight flex items-center justify-center text-text-primary cursor-not-allowed opacity-50">
-                        ❮
+                    <button 
+                        onClick={onBack}
+                        disabled={!canGoBack}
+                        className={`w-8 h-8 rounded-full bg-bg-highlight flex items-center justify-center text-text-primary transition ${canGoBack ? 'hover:scale-105 cursor-pointer opacity-100' : 'cursor-not-allowed opacity-50'}`}
+                    >
+                        <ChevronLeft size={20} />
                     </button>
-                    <button className="w-8 h-8 rounded-full bg-bg-highlight flex items-center justify-center text-text-primary cursor-not-allowed opacity-50">
-                        ❯
+                    <button 
+                        onClick={onForward}
+                        disabled={!canGoForward}
+                        className={`w-8 h-8 rounded-full bg-bg-highlight flex items-center justify-center text-text-primary transition ${canGoForward ? 'hover:scale-105 cursor-pointer opacity-100' : 'cursor-not-allowed opacity-50'}`}
+                    >
+                        <ChevronRight size={20} />
                     </button>
                 </div>
             </div>

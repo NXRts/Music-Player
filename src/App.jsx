@@ -46,6 +46,10 @@ function App() {
   const [queue, setQueue] = useState([]);
   const [history, setHistory] = useState([]);
   
+  // Navigation History State
+  const [viewHistory, setViewHistory] = useState(['home']);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  
   // UI Toggles
   const [showPlaylistSelector, setShowPlaylistSelector] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -223,7 +227,36 @@ function App() {
     playSong(context[prevIndex]);
   };
 
-  // --- Event Handlers ---
+  // Navigation Handlers
+  const handleNavigate = (view) => {
+    // If going to the same view, do nothing
+    if (view === currentView) return;
+
+    const newHistory = viewHistory.slice(0, historyIndex + 1);
+    newHistory.push(view);
+    
+    setViewHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    setCurrentView(view);
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleBack = () => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setCurrentView(viewHistory[newIndex]);
+    }
+  };
+
+  const handleForward = () => {
+    if (historyIndex < viewHistory.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setCurrentView(viewHistory[newIndex]);
+    }
+  };
+
 
   const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files || []);
@@ -336,7 +369,7 @@ function App() {
 
       <Sidebar
         currentView={currentView}
-        onNavigate={(view) => { setCurrentView(view); setIsMobileMenuOpen(false); }}
+        onNavigate={(view) => { handleNavigate(view); }}
         onAddMusic={() => { fileInputRef.current.click(); setIsMobileMenuOpen(false); }}
         onSyncFolder={() => { handleSyncWrapper(); setIsMobileMenuOpen(false); }}
         onCreatePlaylist={() => setShowCreatePlaylistModal(true)}
@@ -344,7 +377,7 @@ function App() {
         onClose={() => setIsMobileMenuOpen(false)}
         onOpenSettings={() => { setShowSettings(true); setIsMobileMenuOpen(false); }}
         playlists={playlists}
-        onSelectPlaylist={(p) => { setActivePlaylist(p); setCurrentView('playlist-detail'); setIsMobileMenuOpen(false); }}
+        onSelectPlaylist={(p) => { setActivePlaylist(p); handleNavigate('playlist-detail'); }}
       />
 
       <div className="flex-1 flex flex-col relative w-full">
@@ -353,6 +386,10 @@ function App() {
           user={user}
           onLogin={() => setShowLoginModal(true)}
           onLogout={handleLogout}
+          onBack={handleBack}
+          onForward={handleForward}
+          canGoBack={historyIndex > 0}
+          canGoForward={historyIndex < viewHistory.length - 1}
         />
 
         <main className="flex-1 flex overflow-hidden relative">
@@ -389,7 +426,7 @@ function App() {
                   {playlists.slice(0, 6).map(playlist => {
                       const firstSong = playlist.songIds[0] ? songs.find(s => s.id === playlist.songIds[0]) : null;
                       return (
-                        <div key={playlist.id} className="flex items-center bg-bg-card hover:bg-bg-highlight transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); setCurrentView('playlist-detail'); }}>
+                        <div key={playlist.id} className="flex items-center bg-bg-card hover:bg-bg-highlight transition rounded-md overflow-hidden cursor-pointer group relative shadow-md" onClick={() => { setActivePlaylist(playlist); handleNavigate('playlist-detail'); }}>
                           {firstSong?.cover && !firstSong.cover.includes('placehold.co') ? (
                             <img src={firstSong.cover} alt={playlist.name} className="w-20 h-20 min-w-[5rem] object-cover shadow-lg" />
                           ) : (
@@ -430,7 +467,7 @@ function App() {
                 onSelect={handleSongSelect}
                 onAddMusic={() => fileInputRef.current.click()}
                 onCreatePlaylist={() => setShowCreatePlaylistModal(true)}
-                onSelectPlaylist={(p) => { setActivePlaylist(p); setCurrentView('playlist-detail'); }}
+                onSelectPlaylist={(p) => { setActivePlaylist(p); handleNavigate('playlist-detail'); }}
                 onDeletePlaylist={removePlaylist}
                 currentSong={currentSong}
                 isPlaying={isPlaying}
@@ -439,8 +476,8 @@ function App() {
 
             {currentView === 'playlist-detail' && activePlaylist && (
                <div className="flex flex-col h-full">
-                 <div className="flex items-center gap-4 mb-6">
-                   <button onClick={() => setCurrentView('library')} className="hover:text-white text-text-secondary"><ArrowLeft size={24} /></button>
+                   <div className="flex items-center gap-4 mb-6">
+                   <button onClick={() => handleNavigate('library')} className="hover:text-white text-text-secondary"><ArrowLeft size={24} /></button>
                    <h2 className="text-3xl font-bold">{activePlaylist.name}</h2>
                  </div>
                  <SongList 
@@ -510,7 +547,7 @@ function App() {
             isSleepTimerActive={isSleepTimerActive}
             onSetSleepTimer={handleSetSleepTimer}
             onToggleLike={() => updateSong(currentSong.id, { isLiked: !currentSong.isLiked })}
-            onToggleQueue={() => setCurrentView(prev => prev === 'queue' ? 'home' : 'queue')}
+            onToggleQueue={() => handleNavigate(currentView === 'queue' ? 'home' : 'queue')}
             onToggleEqualizer={() => setShowEqualizer(!showEqualizer)}
           />
 
