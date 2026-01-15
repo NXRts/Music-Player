@@ -32,6 +32,7 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
     };
 
     return (
+
         <div className="flex items-center justify-between w-full h-full text-text-primary px-2 md:px-0">
             {/* Left Info */}
             <div className="flex items-center gap-3 flex-1 md:w-1/4 min-w-0 pr-2">
