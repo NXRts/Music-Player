@@ -237,6 +237,19 @@ export const useLibrary = () => {
         }
     }, [songs]);
 
+    const sortSongs = useCallback((type) => {
+        setSongs(prev => {
+            const sorted = [...prev];
+            if (type === 'title') {
+                sorted.sort((a, b) => a.title.localeCompare(b.title));
+            } else if (type === 'date') {
+                // Descending order (Newest first)
+                sorted.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            }
+            return sorted;
+        });
+    }, []);
+
     return {
         songs,
         playlists,
@@ -250,6 +263,7 @@ export const useLibrary = () => {
         removePlaylist,
         addToPlaylist,
         processFiles,
-        syncLocalFolder
+        syncLocalFolder,
+        sortSongs
     };
 };

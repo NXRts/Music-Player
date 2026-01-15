@@ -35,7 +35,8 @@ function App() {
     addToPlaylist,
     updatePlaylist,
     processFiles,
-    syncLocalFolder
+    syncLocalFolder,
+    sortSongs
   } = useLibrary();
 
   // Local UI State
@@ -451,7 +452,7 @@ function App() {
                   onDelete={(id) => removeSong(id)}
                   onDeleteAll={clearLibrary}
                   onAddToPlaylist={(id) => { setSongToAdd(id); setShowPlaylistSelector(true); }}
-                  onSort={(type) => { /* Sort logic moved to hook or kept here? Kept simplified for now or add if needed */ }}
+                  onSort={sortSongs}
                   onAddToQueue={(id) => { const s = songs.find(x => x.id === id); if(s) setQueue(p => [...p, s]); }}
                   onPlayNext={(id) => { const s = songs.find(x => x.id === id); if(s) setQueue(p => [s, ...p]); }}
                 />
