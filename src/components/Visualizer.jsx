@@ -77,17 +77,17 @@ const Visualizer = ({ analyser, isPlaying, currentSong, onSaveLyrics, currentTim
     }
 
     return (
-        <div className="h-full w-full flex flex-row bg-transparent gap-4 p-4 md:p-6 overflow-hidden">
-            {/* Visualizer Section (75%) */}
-            <div className="flex-[3] flex flex-col min-w-0 h-full">
+        <div className="h-full w-full flex flex-col md:flex-row bg-transparent gap-4 p-4 md:p-6 overflow-hidden">
+            {/* Visualizer Section (Hidden on mobile, 75% desktop) */}
+            <div className="hidden md:flex md:flex-[3] flex-col min-w-0 min-h-0">
                 <div className="flex-1 w-full bg-neutral-900/50 rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative backdrop-blur-sm">
                     <canvas ref={canvasRef} className="w-full h-full block" />
                 </div>
             </div>
 
-            {/* Lyrics Section (25%) */}
-            <div className="flex-1 flex flex-col min-w-[300px]">
-                <h2 className="text-2xl font-bold mb-4 text-white">Lyrics</h2>
+            {/* Lyrics Section (Remaining space mobile, 25% desktop) */}
+            <div className="flex-1 flex flex-col min-w-0 md:min-w-[300px] min-h-0">
+                <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4 text-white">Lyrics</h2>
                 <div className="flex-1 w-full bg-bg-card rounded-xl border border-gray-800 shadow-xl overflow-hidden">
                     <LyricsView
                         song={currentSong}

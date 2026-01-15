@@ -108,6 +108,9 @@ const PlayerControls = ({ currentSong, isPlaying, onPlayPause, currentTime, dura
                         {showMobileMenu && (
                             <div className="absolute bottom-full mb-4 right-0 bg-bg-highlight border border-white/10 rounded-2xl shadow-2xl py-3 w-56 z-[200] animate-in slide-in-from-bottom-5 duration-300">
                                 <div className="px-4 py-2 text-xs font-bold text-text-secondary uppercase tracking-widest border-b border-white/5 mb-2">Options</div>
+                                <button onClick={() => { onToggleLike(); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${currentSong && currentSong.isLiked ? 'text-accent' : 'text-text-primary'}`}>
+                                    <Heart size={20} fill={currentSong && currentSong.isLiked ? "currentColor" : "none"} /> <span className="text-sm font-medium">Like Song</span>
+                                </button>
                                 <button onClick={() => { onToggleShuffle(); setShowMobileMenu(false); }} className={`w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors ${isShuffle ? 'text-accent' : 'text-text-primary'}`}>
                                     <Shuffle size={20} /> <span className="text-sm font-medium">Shuffle</span>
                                 </button>
