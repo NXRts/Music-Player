@@ -76,7 +76,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                 </div>
             </div>
 
-            <div className="flex flex-col mt-2">
+            <div className="flex flex-col mt-1 md:mt-2">
                 {songs.map((song, index) => {
                     const isCurrent = currentSong?.id === song.id;
                     const isDragOver = dragOverIndex === index;
@@ -90,7 +90,7 @@ const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteA
                             onDragLeave={() => setDragOverIndex(null)}
                             onDrop={(e) => handleDrop(e, index)}
                             onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3.5 md:py-3 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
+                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-2 md:gap-4 px-3 py-3 md:px-4 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
                         >
                             <div className="w-8 flex items-center justify-center relative min-w-[32px]">
                                 {onReorder && (

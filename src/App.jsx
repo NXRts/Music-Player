@@ -393,7 +393,7 @@ function App() {
         />
 
         <main className="flex-1 flex overflow-hidden relative">
-          <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-bg-highlight to-bg-primary relative">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-to-b from-bg-highlight to-bg-primary relative">
 
             {currentView === 'home' && (
               <>
