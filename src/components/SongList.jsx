@@ -1,216 +1,309 @@
-import React, { useState } from 'react';
-import { Music, MoreHorizontal, ListPlus, Play, Pause, Trash2, Plus, Pencil, ArrowDownAZ, Clock3, GripVertical } from 'lucide-react';
+import React, { useState } from "react";
+import {
+  Music,
+  MoreHorizontal,
+  ListPlus,
+  Play,
+  Pause,
+  Trash2,
+  Plus,
+  Pencil,
+  ArrowDownAZ,
+  Clock3,
+  GripVertical,
+} from "lucide-react";
 
-const SongList = ({ songs, currentSong, onSelect, isPlaying, onDelete, onDeleteAll, onAddToPlaylist, onSort, onAddToQueue, onPlayNext, onEdit, onReorder }) => {
-    const [activeMenu, setActiveMenu] = useState(null);
-    const [showSortMenu, setShowSortMenu] = useState(false);
-    const [draggedIndex, setDraggedIndex] = useState(null);
-    const [dragOverIndex, setDragOverIndex] = useState(null);
+const SongList = ({
+  songs,
+  currentSong,
+  onSelect,
+  isPlaying,
+  onDelete,
+  onDeleteAll,
+  onAddToPlaylist,
+  onSort,
+  onAddToQueue,
+  onPlayNext,
+  onEdit,
+  onReorder,
+}) => {
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
-    // Close menu when clicking outside
-    React.useEffect(() => {
-        const handleClickOutside = () => {
-            setActiveMenu(null);
-            setShowSortMenu(false);
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
-
-    const handleDragStart = (e, index) => {
-        if (!onReorder) return;
-        setDraggedIndex(index);
-        e.dataTransfer.effectAllowed = "move";
-        // Ghost image adjustment if needed
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveMenu(null);
+      setShowSortMenu(false);
     };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
-    const handleDragOver = (e, index) => {
-        if (!onReorder || draggedIndex === null) return;
-        e.preventDefault();
-        setDragOverIndex(index);
-    };
+  const handleDragStart = (e, index) => {
+    if (!onReorder) return;
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    // Ghost image adjustment if needed
+  };
 
-    const handleDrop = (e, index) => {
-        if (!onReorder || draggedIndex === null) return;
-        e.preventDefault();
-        if (draggedIndex !== index) {
-            onReorder(draggedIndex, index);
-        }
-        setDraggedIndex(null);
-        setDragOverIndex(null);
-    };
+  const handleDragOver = (e, index) => {
+    if (!onReorder || draggedIndex === null) return;
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
 
-    return (
-        <div className="flex flex-col pb-24">
-            {/* Header & Sort */}
-            <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 border-b border-bg-highlight mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
-                <div className="w-8 text-center text-xs md:text-sm">#</div>
-                <div className="text-xs md:text-sm">Title</div>
-                <div className="hidden md:block text-sm">Artist</div>
-                <div className="hidden md:block text-right pr-4 text-sm">DURATION</div>
-                <div className="relative flex justify-end">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setShowSortMenu(!showSortMenu); }}
-                        className="flex items-center gap-2 hover:text-text-primary hover:bg-bg-highlight px-2 py-1 rounded transition"
+  const handleDrop = (e, index) => {
+    if (!onReorder || draggedIndex === null) return;
+    e.preventDefault();
+    if (draggedIndex !== index) {
+      onReorder(draggedIndex, index);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  return (
+    <div className="flex flex-col pb-24">
+      {/* Header & Sort */}
+      <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 border-b border-bg-highlight mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
+        <div className="w-8 text-center text-xs md:text-sm">#</div>
+        <div className="text-xs md:text-sm">Title</div>
+        <div className="hidden md:block text-sm">Artist</div>
+        <div className="hidden md:block text-right pr-4 text-sm">DURATION</div>
+        <div className="relative flex justify-end">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSortMenu(!showSortMenu);
+            }}
+            className="flex items-center gap-2 hover:text-text-primary hover:bg-bg-highlight px-2 py-1 rounded transition"
+          >
+            <span className="hidden md:inline">Sort</span>{" "}
+            <ArrowDownAZ size={16} />
+          </button>
+
+          {showSortMenu && (
+            <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSort && onSort("date");
+                  setShowSortMenu(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
+              >
+                Date Added
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSort && onSort("title");
+                  setShowSortMenu(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
+              >
+                Title (A-Z)
+              </button>
+              {onDeleteAll && (
+                <>
+                  <div className="border-t border-bg-secondary my-1"></div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteAll();
+                      setShowSortMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-red-500 text-sm flex items-center gap-2"
+                  >
+                    <Trash2 size={14} /> Delete All Songs
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col mt-1 md:mt-2">
+        {songs.map((song, index) => {
+          const isCurrent = currentSong?.id === song.id;
+          const isDragOver = dragOverIndex === index;
+
+          return (
+            <div
+              key={song.id}
+              draggable={!!onReorder}
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={() => setDragOverIndex(null)}
+              onDrop={(e) => handleDrop(e, index)}
+              onClick={() => onSelect(song)}
+              className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-2 md:gap-4 px-3 py-3 md:px-4 rounded-md cursor-pointer transition-all group relative ${isCurrent ? "bg-bg-highlight text-accent" : "hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary"} ${isDragOver ? "border-t-2 border-accent mt-1" : ""} ${draggedIndex === index ? "opacity-30" : ""}`}
+            >
+              <div className="w-8 flex items-center justify-center relative min-w-[32px]">
+                {onReorder && (
+                  <div className="hidden group-hover:flex absolute -left-2 items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing">
+                    <GripVertical size={14} />
+                  </div>
+                )}
+
+                {isCurrent && isPlaying ? (
+                  <>
+                    <img
+                      src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif"
+                      className="w-4 h-4 group-hover:hidden"
+                      alt="playing"
+                    />
+                    <Pause
+                      size={16}
+                      fill="currentColor"
+                      className="hidden group-hover:block text-accent"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span
+                      className={`text-sm font-medium group-hover:hidden ${isCurrent ? "text-accent" : ""}`}
                     >
-                        <span className="hidden md:inline">Sort</span> <ArrowDownAZ size={16} />
+                      {index + 1}
+                    </span>
+                    <Play
+                      size={16}
+                      fill="currentColor"
+                      className="hidden group-hover:block text-text-primary"
+                    />
+                  </>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 overflow-hidden">
+                {!song.cover || song.cover.includes("placehold.co") ? (
+                  <div className="w-10 h-10 min-w-10 min-h-10 rounded shadow-sm bg-bg-highlight flex items-center justify-center text-text-secondary">
+                    <Music size={20} />
+                  </div>
+                ) : (
+                  <img
+                    src={song.cover}
+                    alt=""
+                    className="w-10 h-10 rounded shadow-sm object-cover"
+                  />
+                )}
+                <div className="flex flex-col truncate">
+                  <span
+                    className={`font-medium truncate ${isCurrent ? "text-accent" : "text-text-primary"}`}
+                  >
+                    {song.title}
+                  </span>
+                  <span className="text-xs text-text-secondary md:hidden truncate">
+                    {song.artist}
+                  </span>
+                </div>
+              </div>
+
+              <div className="hidden md:flex items-center truncate text-sm">
+                {song.artist}
+              </div>
+
+              <div className="hidden md:flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
+                {typeof song.duration === "number"
+                  ? Math.floor(song.duration / 60) +
+                    ":" +
+                    String(Math.floor(song.duration % 60)).padStart(2, "0")
+                  : song.duration}
+              </div>
+
+              {/* Options Menu Button column */}
+              <div className="relative flex justify-center items-center gap-1">
+                <button
+                  className="p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary z-20 transition"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToPlaylist && onAddToPlaylist(song.id);
+                  }}
+                  title="Add to Playlist"
+                >
+                  <Plus size={20} />
+                </button>
+                <button
+                  className={`p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight z-20 transition ${activeMenu === song.id ? "text-text-primary" : "text-text-secondary"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMenu(activeMenu === song.id ? null : song.id);
+                  }}
+                >
+                  <MoreHorizontal size={20} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {activeMenu === song.id && (
+                  <div className="absolute right-0 top-10 w-48 bg-bg-highlight rounded-lg shadow-xl z-50 py-1 border border-bg-secondary animate-fade-in">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayNext(song.id);
+                        setActiveMenu(null);
+                      }}
+                    >
+                      <Play size={14} /> Play Next
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToQueue(song.id);
+                        setActiveMenu(null);
+                      }}
+                    >
+                      <ListPlus size={14} /> Add to Queue
                     </button>
 
-                    {showSortMenu && (
-                        <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
-                            <button onClick={(e) => { e.stopPropagation(); onSort && onSort('date'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm">Date Added</button>
-                            <button onClick={(e) => { e.stopPropagation(); onSort && onSort('title'); setShowSortMenu(false); }} className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm">Title (A-Z)</button>
-                            {onDeleteAll && (
-                                <>
-                                    <div className="border-t border-bg-secondary my-1"></div>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onDeleteAll(); setShowSortMenu(false); }}
-                                        className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-red-500 text-sm flex items-center gap-2"
-                                    >
-                                        <Trash2 size={14} /> Delete All Songs
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                    {onEdit && (
+                      <button
+                        className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEdit(song);
+                          setActiveMenu(null);
+                        }}
+                      >
+                        <Pencil size={14} /> Edit Info
+                      </button>
                     )}
-                </div>
+
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToPlaylist(song.id);
+                        setActiveMenu(null);
+                      }}
+                    >
+                      <Plus size={14} /> Add to Playlist
+                    </button>
+                    <div className="border-t border-bg-secondary my-1"></div>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-bg-secondary flex items-center gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(song.id);
+                        setActiveMenu(null);
+                      }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-
-            <div className="flex flex-col mt-1 md:mt-2">
-                {songs.map((song, index) => {
-                    const isCurrent = currentSong?.id === song.id;
-                    const isDragOver = dragOverIndex === index;
-
-                    return (
-                        <div
-                            key={song.id}
-                            draggable={!!onReorder}
-                            onDragStart={(e) => handleDragStart(e, index)}
-                            onDragOver={(e) => handleDragOver(e, index)}
-                            onDragLeave={() => setDragOverIndex(null)}
-                            onDrop={(e) => handleDrop(e, index)}
-                            onClick={() => onSelect(song)}
-                            className={`grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-2 md:gap-4 px-3 py-3 md:px-4 rounded-md cursor-pointer transition-all group relative ${isCurrent ? 'bg-bg-highlight text-accent' : 'hover:bg-bg-highlight hover:bg-opacity-50 text-text-secondary hover:text-text-primary'} ${isDragOver ? 'border-t-2 border-accent mt-1' : ''} ${draggedIndex === index ? 'opacity-30' : ''}`}
-                        >
-                            <div className="w-8 flex items-center justify-center relative min-w-[32px]">
-                                {onReorder && (
-                                    <div className="hidden group-hover:flex absolute -left-2 items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing">
-                                        <GripVertical size={14} />
-                                    </div>
-                                )}
-
-                                {isCurrent && isPlaying ? (
-                                    <>
-                                        <img
-                                            src="https://open.spotifycdn.com/cdn/images/equaliser-animated-green.f93a2ef4.gif"
-                                            className="w-4 h-4 group-hover:hidden"
-                                            alt="playing"
-                                        />
-                                        <Pause size={16} fill="currentColor" className="hidden group-hover:block text-accent" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className={`text-sm font-medium group-hover:hidden ${isCurrent ? 'text-accent' : ''}`}>
-                                            {index + 1}
-                                        </span>
-                                        <Play size={16} fill="currentColor" className="hidden group-hover:block text-text-primary" />
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                {!song.cover || song.cover.includes('placehold.co') ? (
-                                    <div className="w-10 h-10 min-w-10 min-h-10 rounded shadow-sm bg-bg-highlight flex items-center justify-center text-text-secondary">
-                                        <Music size={20} />
-                                    </div>
-                                ) : (
-                                    <img src={song.cover} alt="" className="w-10 h-10 rounded shadow-sm object-cover" />
-                                )}
-                                <div className="flex flex-col truncate">
-                                    <span className={`font-medium truncate ${isCurrent ? 'text-accent' : 'text-text-primary'}`}>{song.title}</span>
-                                    <span className="text-xs text-text-secondary md:hidden truncate">{song.artist}</span>
-                                </div>
-                            </div>
-
-                            <div className="hidden md:flex items-center truncate text-sm">
-                                {song.artist}
-                            </div>
-
-                            <div className="hidden md:flex items-center justify-end pr-4 text-sm font-variant-numeric tab-num">
-                                {typeof song.duration === 'number' ?
-                                    (Math.floor(song.duration / 60) + ":" + String(Math.floor(song.duration % 60)).padStart(2, '0')) :
-                                    song.duration}
-                            </div>
-
-                            {/* Options Menu Button column */}
-                            <div className="relative flex justify-center items-center gap-1">
-                                <button
-                                    className="p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary z-20 transition"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onAddToPlaylist && onAddToPlaylist(song.id);
-                                    }}
-                                    title="Add to Playlist"
-                                >
-                                    <Plus size={20} />
-                                </button>
-                                <button
-                                    className={`p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight z-20 transition ${activeMenu === song.id ? 'text-text-primary' : 'text-text-secondary'}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActiveMenu(activeMenu === song.id ? null : song.id);
-                                    }}
-                                >
-                                    <MoreHorizontal size={20} />
-                                </button>
-
-                                {/* Dropdown Menu */}
-                                {activeMenu === song.id && (
-                                    <div className="absolute right-0 top-10 w-48 bg-bg-highlight rounded-lg shadow-xl z-50 py-1 border border-bg-secondary animate-fade-in">
-                                        <button
-                                            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
-                                            onClick={(e) => { e.stopPropagation(); onPlayNext(song.id); setActiveMenu(null); }}
-                                        >
-                                            <Play size={14} /> Play Next
-                                        </button>
-                                        <button
-                                            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
-                                            onClick={(e) => { e.stopPropagation(); onAddToQueue(song.id); setActiveMenu(null); }}
-                                        >
-                                            <ListPlus size={14} /> Add to Queue
-                                        </button>
-
-                                        {onEdit && (
-                                            <button
-                                                className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
-                                                onClick={(e) => { e.stopPropagation(); onEdit(song); setActiveMenu(null); }}
-                                            >
-                                                <Pencil size={14} /> Edit Info
-                                            </button>
-                                        )}
-
-                                        <button
-                                            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-bg-secondary flex items-center gap-2"
-                                            onClick={(e) => { e.stopPropagation(); onAddToPlaylist(song.id); setActiveMenu(null); }}
-                                        >
-                                            <Plus size={14} /> Add to Playlist
-                                        </button>
-                                        <div className="border-t border-bg-secondary my-1"></div>
-                                        <button
-                                            className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-bg-secondary flex items-center gap-2"
-                                            onClick={(e) => { e.stopPropagation(); onDelete(song.id); setActiveMenu(null); }}
-                                        >
-                                            <Trash2 size={14} /> Delete
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
-    );
+          );
+        })}
+      </div>
+    </div>
+  );
 };
 
 export default SongList;

@@ -76,4 +76,5 @@ A premium, feature-rich web-based music player built with **React** and **Vite**
 The **Local Folder Sync** feature requires the **File System Access API**, which is currently supported in Chromium-based browsers (Chrome, Edge, Brave). Support for other browsers may vary.
 
 ---
+
 Built with ❤️ by [NXRts](https://github.com/NXRts)

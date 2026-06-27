@@ -3,101 +3,103 @@
 @tailwind utilities;
 
 @layer utilities {
-    .tab-num {
-        font-variant-numeric: tabular-nums;
-    }
+  .tab-num {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @layer base {
-    :root {
-        --color-bg-primary: #121212;
-        --color-bg-secondary: #000000;
-        --color-bg-highlight: #2a2a2a;
-        --color-bg-card: #282828;
-        --color-text-primary: #ffffff;
-        --color-text-secondary: #b3b3b3;
-        --color-accent: #1db954;
-        --color-border-subtle: #4d4d4d;
-    }
+  :root {
+    --color-bg-primary: #121212;
+    --color-bg-secondary: #000000;
+    --color-bg-highlight: #2a2a2a;
+    --color-bg-card: #282828;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b3b3b3;
+    --color-accent: #1db954;
+    --color-border-subtle: #4d4d4d;
+  }
 
-    /* Light Theme Override */
-    .light-theme {
-        --color-bg-primary: #ffffff;
-        --color-bg-secondary: #f3f4f6;
-        /* Gray 100 */
-        --color-bg-highlight: #e5e7eb;
-        /* Gray 200 */
-        --color-bg-card: #ffffff;
-        --color-text-primary: #111827;
-        /* Gray 900 */
-        --color-text-secondary: #6b7280;
-        --color-accent: #1db954;
-        --color-border-subtle: #d1d5db;
-    }
+  /* Light Theme Override */
+  .light-theme {
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f3f4f6;
+    /* Gray 100 */
+    --color-bg-highlight: #e5e7eb;
+    /* Gray 200 */
+    --color-bg-card: #ffffff;
+    --color-text-primary: #111827;
+    /* Gray 900 */
+    --color-text-secondary: #6b7280;
+    --color-accent: #1db954;
+    --color-border-subtle: #d1d5db;
+  }
 }
 
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: var(--color-bg-primary);
-    color: var(--color-text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-        monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-    width: 10px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #121212;
+  background: #121212;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #5a5a5a;
-    border-radius: 5px;
+  background: #5a5a5a;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #888;
+  background: #888;
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
+  from {
+    opacity: 0;
+  }
 
-    to {
-        opacity: 1;
-    }
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.2s ease-out;
 }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translate(-50%, 20px);
-    }
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
 
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .animate-fade-in-up {
-    animation: fadeInUp 0.3s ease-out forwards;
+  animation: fadeInUp 0.3s ease-out forwards;
 }
