@@ -29,14 +29,19 @@ const SongList = ({
 }) => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   // Close menu when clicking outside
   React.useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event) => {
+      if (event.target && event.target.closest('[data-dropdown="true"]')) {
+        return;
+      }
       setActiveMenu(null);
       setShowSortMenu(false);
+      setShowHeaderMenu(false);
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -67,60 +72,90 @@ const SongList = ({
 
   return (
     <div className="flex flex-col pb-24">
-      {/* Header & Sort */}
+      {/* Header & Options */}
       <div className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_1fr_1fr_auto] items-center gap-4 px-4 py-3 border-b border-bg-highlight mb-2 text-text-secondary text-sm font-bold uppercase tracking-wider">
         <div className="w-8 text-center text-xs md:text-sm">#</div>
         <div className="text-xs md:text-sm">Title</div>
         <div className="hidden md:block text-sm">Artist</div>
         <div className="hidden md:block text-right pr-4 text-sm">DURATION</div>
-        <div className="relative flex justify-end">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowSortMenu(!showSortMenu);
-            }}
-            className="flex items-center gap-2 hover:text-text-primary hover:bg-bg-highlight px-2 py-1 rounded transition"
-          >
-            <span className="hidden md:inline">Sort</span>{" "}
-            <ArrowDownAZ size={16} />
-          </button>
+        <div className="relative flex justify-end items-center gap-2">
+          {onSort && (
+            <div className="relative" data-dropdown="true">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSortMenu(!showSortMenu);
+                  setShowHeaderMenu(false);
+                }}
+                className="flex items-center gap-2 hover:text-text-primary hover:bg-bg-highlight px-2 py-1 rounded transition"
+              >
+                <span className="hidden md:inline">Sort</span>{" "}
+                <ArrowDownAZ size={16} />
+              </button>
 
-          {showSortMenu && (
-            <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSort && onSort("date");
-                  setShowSortMenu(false);
-                }}
-                className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
-              >
-                Date Added
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSort && onSort("title");
-                  setShowSortMenu(false);
-                }}
-                className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
-              >
-                Title (A-Z)
-              </button>
-              {onDeleteAll && (
-                <>
-                  <div className="border-t border-bg-secondary my-1"></div>
+              {showSortMenu && (
+                <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-48 z-50 normal-case">
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onDeleteAll();
+                      onSort("date");
                       setShowSortMenu(false);
                     }}
-                    className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-red-500 text-sm flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
                   >
-                    <Trash2 size={14} /> Delete All Songs
+                    Date Added
                   </button>
-                </>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSort("title");
+                      setShowSortMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-text-primary text-sm"
+                  >
+                    Title (A-Z)
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {onDeleteAll && (
+            <div className="relative" data-dropdown="true">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowHeaderMenu((prev) => !prev);
+                  setShowSortMenu(false);
+                }}
+                className="p-1.5 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary transition flex items-center justify-center"
+                title="Options"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+
+              {showHeaderMenu && (
+                <div className="absolute right-0 top-full mt-2 bg-bg-highlight border border-bg-secondary rounded-lg shadow-xl py-1 w-44 z-50 normal-case">
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      setShowHeaderMenu(false);
+                      try {
+                        await onDeleteAll();
+                      } catch (err) {
+                        console.error("Error clearing songs:", err);
+                      }
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-bg-secondary text-red-500 text-sm flex items-center gap-2 font-medium"
+                  >
+                    <Trash2 size={14} /> Delete All
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -216,7 +251,7 @@ const SongList = ({
               </div>
 
               {/* Options Menu Button column */}
-              <div className="relative flex justify-center items-center gap-1">
+              <div className="relative flex justify-center items-center gap-1" data-dropdown="true">
                 <button
                   className="p-2.5 rounded-full hover:text-text-primary hover:bg-bg-highlight text-text-secondary z-20 transition"
                   onClick={(e) => {

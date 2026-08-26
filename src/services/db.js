@@ -39,6 +39,63 @@ export const saveSong = async (song) => {
   });
 };
 
+export const saveSongsBatch = async (songs) => {
+  if (!songs || songs.length === 0) return;
+  try {
+    const db = await initDB();
+    return new Promise((resolve) => {
+      const transaction = db.transaction([STORE_NAME], "readwrite");
+      const store = transaction.objectStore(STORE_NAME);
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = (event) => {
+        console.warn("saveSongsBatch transaction issue:", event.target.error);
+        resolve();
+      };
+
+      for (const song of songs) {
+        try {
+          const cleanSong = {
+            id: song.id,
+            title: song.title || "Unknown Title",
+            artist: song.artist || "Unknown Artist",
+            album: song.album || "Unknown Album",
+            duration: song.duration || "0:00",
+            cover: song.cover || null,
+            type: song.type || "file",
+            path: song.path || "",
+            size: song.size || 0,
+            createdAt: song.createdAt || Date.now(),
+            playCount: song.playCount || 0,
+            isLiked: !!song.isLiked,
+          };
+          if (song.file) cleanSong.file = song.file;
+          if (song.fileHandle) cleanSong.fileHandle = song.fileHandle;
+
+          store.put(cleanSong);
+        } catch (err) {
+          console.warn("Song put fallback for:", song.title, err);
+          try {
+            store.put({
+              id: song.id,
+              title: song.title || "Unknown Title",
+              artist: song.artist || "Unknown Artist",
+              album: song.album || "Unknown Album",
+              duration: song.duration || "0:00",
+              cover: song.cover || null,
+              type: song.type || "file",
+              path: song.path || "",
+              createdAt: song.createdAt || Date.now(),
+            });
+          } catch (e) {}
+        }
+      }
+    });
+  } catch (err) {
+    console.error("Failed to initialize DB in saveSongsBatch:", err);
+  }
+};
+
 export const getAllSongs = async () => {
   const db = await initDB();
   return new Promise((resolve, reject) => {
@@ -66,12 +123,18 @@ export const deleteSong = async (id) => {
 export const clearAllSongs = async () => {
   const db = await initDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], "readwrite");
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.clear();
+    const transaction = db.transaction(
+      [STORE_NAME, FOLDER_STORE_NAME],
+      "readwrite",
+    );
+    const songStore = transaction.objectStore(STORE_NAME);
+    const folderStore = transaction.objectStore(FOLDER_STORE_NAME);
 
-    request.onsuccess = () => resolve();
-    request.onerror = (event) => reject(event.target.error);
+    songStore.clear();
+    folderStore.clear();
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = (event) => reject(event.target.error);
   });
 };
 

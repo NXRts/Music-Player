@@ -20,6 +20,9 @@ const YourLibrary = ({
   onCreatePlaylist,
   onSelectPlaylist,
   onDeletePlaylist,
+  onDeleteAll,
+  onDeleteSong,
+  onSort,
   currentSong,
   isPlaying,
 }) => {
@@ -214,6 +217,9 @@ const YourLibrary = ({
             currentSong={currentSong}
             onSelect={onSelect}
             isPlaying={isPlaying}
+            onDelete={onDeleteSong}
+            onDeleteAll={onDeleteAll}
+            onSort={onSort}
           />
         )}
 

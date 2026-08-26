@@ -76,6 +76,7 @@ function App() {
   const sleepTimerRef = useRef(null);
 
   const fileInputRef = useRef(null);
+  const folderInputRef = useRef(null);
 
   // --- Audio Hook ---
   const {
@@ -234,6 +235,15 @@ function App() {
     playSong(context[prevIndex]);
   };
 
+  const handleDeleteAllSongs = async () => {
+    await clearLibrary();
+    setQueue([]);
+    setPlaybackContext([]);
+    if (isPlaying) playerPause();
+    setCurrentSong(null);
+    showToast("Semua lagu berhasil dihapus.");
+  };
+
   // Navigation Handlers
   const handleNavigate = (view) => {
     // If going to the same view, do nothing
@@ -276,18 +286,44 @@ function App() {
     if (event.target) event.target.value = "";
   };
 
+  const handleFolderUpload = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) {
+      showToast("No audio files found in selected folder.");
+      return;
+    }
+
+    showToast(`Scanning folder for audio files...`);
+    const added = await processFiles(files, (current, total) => {
+      showToast(`Processing songs: ${current}/${total}...`);
+    });
+
+    if (added > 0) showToast(`Successfully added ${added} songs!`);
+    else showToast("No new songs added (duplicates or no audio).");
+    if (event.target) event.target.value = "";
+  };
+
   const handleSyncWrapper = async () => {
-    try {
-      const result = await syncLocalFolder();
-      if (result) {
-        showToast(
-          result.added > 0
-            ? `Synced ${result.added} new songs from ${result.folderName}`
-            : `${result.folderName} is up to date.`,
-        );
+    if ("showDirectoryPicker" in window) {
+      try {
+        const result = await syncLocalFolder((current, total) => {
+          showToast(`Scanning folder: ${current}/${total} songs...`);
+        });
+        if (result) {
+          showToast(
+            result.added > 0
+              ? `Synced ${result.added} new songs from ${result.folderName}`
+              : `${result.folderName} is up to date.`,
+          );
+        }
+      } catch (e) {
+        if (e.name !== "AbortError") {
+          folderInputRef.current?.click();
+        }
       }
-    } catch (e) {
-      alert(e.message);
+    } else {
+      // Fallback for browsers without window.showDirectoryPicker
+      folderInputRef.current?.click();
     }
   };
 
@@ -505,7 +541,7 @@ function App() {
                   onSelect={handleSongSelect}
                   isPlaying={isPlaying}
                   onDelete={(id) => removeSong(id)}
-                  onDeleteAll={clearLibrary}
+                  onDeleteAll={handleDeleteAllSongs}
                   onAddToPlaylist={(id) => {
                     setSongToAdd(id);
                     setShowPlaylistSelector(true);
@@ -539,6 +575,9 @@ function App() {
                   handleNavigate("playlist-detail");
                 }}
                 onDeletePlaylist={removePlaylist}
+                onDeleteAll={handleDeleteAllSongs}
+                onDeleteSong={(id) => removeSong(id)}
+                onSort={sortSongs}
                 currentSong={currentSong}
                 isPlaying={isPlaying}
               />
@@ -575,6 +614,14 @@ function App() {
                       songIds: activePlaylist.songIds.filter(
                         (id) => id !== sid,
                       ),
+                    };
+                    updatePlaylist(updated);
+                    setActivePlaylist(updated);
+                  }}
+                  onDeleteAll={() => {
+                    const updated = {
+                      ...activePlaylist,
+                      songIds: [],
                     };
                     updatePlaylist(updated);
                     setActivePlaylist(updated);
@@ -706,6 +753,16 @@ function App() {
         ref={fileInputRef}
         className="hidden"
         onChange={handleFileUpload}
+      />
+
+      <input
+        type="file"
+        ref={folderInputRef}
+        webkitdirectory=""
+        directory=""
+        multiple
+        className="hidden"
+        onChange={handleFolderUpload}
       />
 
       {showSettings && (

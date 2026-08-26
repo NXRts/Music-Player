@@ -98,9 +98,21 @@ export const useLibrary = () => {
   );
 
   const clearLibrary = useCallback(async () => {
-    await clearAllSongs();
-    songs.forEach((s) => s.src && URL.revokeObjectURL(s.src));
-    setSongs([]);
+    try {
+      await clearAllSongs();
+    } catch (error) {
+      console.error("Failed to clear songs from database:", error);
+    } finally {
+      songs.forEach((s) => s.src && URL.revokeObjectURL(s.src));
+      setSongs([]);
+      setPlaylists((prevPlaylists) =>
+        prevPlaylists.map((p) => {
+          const updated = { ...p, songIds: [] };
+          savePlaylist(updated).catch(() => {});
+          return updated;
+        }),
+      );
+    }
   }, [songs]);
 
   const createPlaylist = useCallback(async (name) => {
@@ -139,130 +151,198 @@ export const useLibrary = () => {
 
   // File Upload Handler meant to be used by UI
   const processFiles = useCallback(
-    async (files) => {
-      const newSongs = [];
-      const existingTitles = new Set(songs.map((s) => s.title));
+    async (files, onProgress) => {
+      const allNewSongs = [];
+      const existingKeys = new Set(
+        songs.map(
+          (s) =>
+            `${s.title}|${s.artist || "Unknown Artist"}|${s.file?.name || s.path || ""}`,
+        ),
+      );
 
-      for (const file of files) {
-        try {
-          const durationSeconds = await getAudioDuration(file);
-          const metadata = await getSongMetadata(file);
-          const titleToCheck =
-            metadata.title || file.name.replace(/\.[^/.]+$/, "");
+      // Filter audio files
+      const audioFiles = Array.from(files).filter(
+        (f) =>
+          f.type.startsWith("audio/") ||
+          /\.(mp3|wav|m4a|flac|ogg|aac|wma|opus|webm)$/i.test(f.name),
+      );
 
-          if (existingTitles.has(titleToCheck)) continue;
-          existingTitles.add(titleToCheck);
+      const BATCH_SIZE = 8;
+      for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
+        const chunk = audioFiles.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(
+          chunk.map(async (file, idx) => {
+            try {
+              const metadata = await getSongMetadata(file);
+              const durationSeconds = await getAudioDuration(file);
+              const title =
+                metadata.title || file.name.replace(/\.[^/.]+$/, "");
+              const artist = metadata.artist || "Unknown Artist";
 
-          const newSong = {
-            id: Date.now() + Math.random(),
-            title: titleToCheck,
-            artist: metadata.artist || "Unknown Artist",
-            album: metadata.album || "Unknown Album",
-            duration: formatDuration(durationSeconds),
-            cover:
-              metadata.cover ||
-              "https://placehold.co/300x300/333333/ffffff?text=MP3",
-            file: file,
-            createdAt: Date.now(),
-            src: URL.createObjectURL(file),
-          };
+              const songKey = `${title}|${artist}|${file.name}`;
+              if (existingKeys.has(songKey)) return null;
+              existingKeys.add(songKey);
 
-          await saveSong(newSong);
-          newSongs.push(newSong);
-        } catch (e) {
-          console.error("Error processing file", file.name, e);
+              return {
+                id: `${Date.now()}-${i + idx}-${Math.random().toString(36).substring(2, 7)}`,
+                title,
+                artist,
+                album: metadata.album || "Unknown Album",
+                duration: formatDuration(durationSeconds),
+                cover:
+                  metadata.cover ||
+                  "https://placehold.co/300x300/333333/ffffff?text=MP3",
+                file: file,
+                createdAt: Date.now(),
+                src: URL.createObjectURL(file),
+              };
+            } catch (e) {
+              console.error("Error processing file", file.name, e);
+              return null;
+            }
+          }),
+        );
+
+        const validSongs = batchResults.filter(Boolean);
+        if (validSongs.length > 0) {
+          try {
+            await saveSongsBatch(validSongs);
+          } catch (e) {
+            console.warn("DB batch save warning:", e);
+          }
+          allNewSongs.push(...validSongs);
+          setSongs((prev) => [...prev, ...validSongs]);
+        }
+
+        if (onProgress) {
+          onProgress(
+            Math.min(i + BATCH_SIZE, audioFiles.length),
+            audioFiles.length,
+          );
         }
       }
 
-      if (newSongs.length > 0) {
-        setSongs((prev) => [...prev, ...newSongs]);
-      }
-      return newSongs.length;
+      return allNewSongs.length;
     },
     [songs],
   );
 
   // Sync Folder Handler
-  const syncLocalFolder = useCallback(async () => {
-    if (!("showDirectoryPicker" in window)) {
-      throw new Error("Browser does not support File System Access API");
-    }
+  const syncLocalFolder = useCallback(
+    async (onProgress) => {
+      if (!("showDirectoryPicker" in window)) {
+        throw new Error("Browser does not support File System Access API");
+      }
 
-    try {
-      const folderHandle = await window.showDirectoryPicker();
-      await saveFolderHandle({ path: folderHandle.name, handle: folderHandle });
+      try {
+        const folderHandle = await window.showDirectoryPicker();
+        await saveFolderHandle({
+          path: folderHandle.name,
+          handle: folderHandle,
+        });
 
-      const audioFiles = [];
-      const scan = async (handle, path = "") => {
-        for await (const entry of handle.values()) {
-          if (entry.kind === "directory") {
-            await scan(entry, `${path}/${entry.name}`);
-          } else if (entry.kind === "file") {
-            if (/\.(mp3|wav|m4a|flac|ogg)$/i.test(entry.name)) {
-              audioFiles.push({ handle: entry, path: `${path}/${entry.name}` });
+        const audioFiles = [];
+        const scan = async (handle, path = "") => {
+          for await (const entry of handle.values()) {
+            if (entry.kind === "directory") {
+              await scan(entry, `${path}/${entry.name}`);
+            } else if (entry.kind === "file") {
+              if (
+                /\.(mp3|wav|m4a|flac|ogg|aac|wma|opus|webm)$/i.test(entry.name)
+              ) {
+                audioFiles.push({
+                  handle: entry,
+                  path: `${path}/${entry.name}`,
+                });
+              }
             }
           }
-        }
-      };
-
-      await scan(folderHandle);
-
-      let processedCount = 0;
-      const newSongs = [];
-      const existingTitles = new Set(songs.map((s) => s.title));
-
-      for (const fileObj of audioFiles) {
-        const { handle, path } = fileObj;
-        const file = await handle.getFile();
-
-        const metadata = await getSongMetadata(file);
-        const title = metadata.title || file.name.replace(/\.[^/.]+$/, "");
-        const artist = metadata.artist || "Unknown Artist";
-
-        // Check duplicates
-        const isDuplicate =
-          existingTitles.has(title) || existingTitles.has(`${title}-${artist}`);
-        if (isDuplicate) continue;
-
-        const durationSeconds = await getAudioDuration(file);
-        const formattedDuration = formatDuration(durationSeconds);
-
-        const songData = {
-          id: Date.now() + Math.random(),
-          title,
-          artist,
-          album: metadata.album || "Unknown Album",
-          cover: metadata.cover,
-          duration: formattedDuration,
-          size: file.size,
-          type: "local",
-          fileHandle: handle,
-          path: path,
-          createdAt: Date.now(),
-          playCount: 0,
-          isLiked: false,
         };
 
-        await saveSong(songData);
-        newSongs.push(songData);
-        existingTitles.add(title);
-        processedCount++;
-      }
+        await scan(folderHandle);
 
-      if (newSongs.length > 0) {
-        setSongs((prev) => [...prev, ...newSongs]);
-      }
+        const allNewSongs = [];
+        const existingKeys = new Set(
+          songs.map(
+            (s) =>
+              `${s.title}|${s.artist || "Unknown Artist"}|${s.path || s.file?.name || ""}`,
+          ),
+        );
 
-      return {
-        added: newSongs.length,
-        total: audioFiles.length,
-        folderName: folderHandle.name,
-      };
-    } catch (error) {
-      if (error.name !== "AbortError") throw error;
-      return null; // Cancelled
-    }
-  }, [songs]);
+        const BATCH_SIZE = 8;
+        for (let i = 0; i < audioFiles.length; i += BATCH_SIZE) {
+          const chunk = audioFiles.slice(i, i + BATCH_SIZE);
+          const batchResults = await Promise.all(
+            chunk.map(async (fileObj, idx) => {
+              try {
+                const { handle, path } = fileObj;
+                const file = await handle.getFile();
+
+                const metadata = await getSongMetadata(file);
+                const title =
+                  metadata.title || file.name.replace(/\.[^/.]+$/, "");
+                const artist = metadata.artist || "Unknown Artist";
+
+                const songKey = `${title}|${artist}|${path}`;
+                if (existingKeys.has(songKey)) return null;
+                existingKeys.add(songKey);
+
+                const durationSeconds = await getAudioDuration(file);
+                const formattedDuration = formatDuration(durationSeconds);
+
+                return {
+                  id: `${Date.now()}-${i + idx}-${Math.random().toString(36).substring(2, 7)}`,
+                  title,
+                  artist,
+                  album: metadata.album || "Unknown Album",
+                  cover: metadata.cover,
+                  duration: formattedDuration,
+                  size: file.size,
+                  type: "local",
+                  fileHandle: handle,
+                  path: path,
+                  createdAt: Date.now(),
+                  playCount: 0,
+                  isLiked: false,
+                };
+              } catch (err) {
+                console.error("Error scanning file", fileObj.path, err);
+                return null;
+              }
+            }),
+          );
+
+          const validSongs = batchResults.filter(Boolean);
+          if (validSongs.length > 0) {
+            try {
+              await saveSongsBatch(validSongs);
+            } catch (e) {
+              console.warn("DB batch save warning:", e);
+            }
+            allNewSongs.push(...validSongs);
+            setSongs((prev) => [...prev, ...validSongs]);
+          }
+
+          if (onProgress) {
+            onProgress(
+              Math.min(i + BATCH_SIZE, audioFiles.length),
+              audioFiles.length,
+            );
+          }
+        }
+
+        return {
+          added: allNewSongs.length,
+          total: audioFiles.length,
+          folderName: folderHandle.name,
+        };
+      } catch (error) {
+        if (error.name !== "AbortError") throw error;
+        return null; // Cancelled
+      }
+    },
+    [songs],
+  );
 
   const sortSongs = useCallback((type) => {
     setSongs((prev) => {
