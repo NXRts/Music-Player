@@ -9,50 +9,88 @@ export const formatDuration = (seconds) => {
 
 export const getAudioDuration = (file) => {
   return new Promise((resolve) => {
+    let resolved = false;
     const audio = new Audio();
     const objectUrl = URL.createObjectURL(file);
     audio.src = objectUrl;
 
-    audio.onloadedmetadata = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(audio.duration);
+    const cleanup = (duration) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
+      try {
+        URL.revokeObjectURL(objectUrl);
+      } catch (e) {}
+      resolve(duration || 0);
     };
 
-    audio.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(0);
-    };
+    const timer = setTimeout(() => cleanup(0), 3000);
+    audio.onloadedmetadata = () => cleanup(audio.duration);
+    audio.onerror = () => cleanup(0);
   });
 };
 
 export const getSongMetadata = (file) => {
   return new Promise((resolve) => {
+    let resolved = false;
+    const fallbackTitle = file.name.replace(/\.[^/.]+$/, "");
+
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        resolve({
+          title: fallbackTitle,
+          artist: "Unknown Artist",
+          album: "Unknown Album",
+          cover: null,
+        });
+      }
+    }, 4000);
+
     jsmediatags.read(file, {
       onSuccess: (tag) => {
-        const { title, artist, picture, album } = tag.tags;
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timer);
+
+        const { title, artist, picture, album } = tag.tags || {};
         let coverUrl = null;
 
         if (picture) {
-          const { data, format } = picture;
-          let base64String = "";
-          for (let i = 0; i < data.length; i++) {
-            base64String += String.fromCharCode(data[i]);
+          try {
+            const { data, format } = picture;
+            let binary = "";
+            const bytes = new Uint8Array(data);
+            const len = bytes.byteLength;
+            const chunkSize = 8192;
+            for (let i = 0; i < len; i += chunkSize) {
+              binary += String.fromCharCode.apply(
+                null,
+                bytes.subarray(i, i + chunkSize),
+              );
+            }
+            coverUrl = `data:${format};base64,${window.btoa(binary)}`;
+          } catch (e) {
+            console.warn("Cover image base64 conversion failed:", e);
+            coverUrl = null;
           }
-          coverUrl = `data:${format};base64,${window.btoa(base64String)}`;
         }
 
         resolve({
-          title: title || file.name.replace(/\.[^/.]+$/, ""),
-          artist: artist || "Unknown Artist",
-          album: album || "Unknown Album",
+          title: (title || "").trim() || fallbackTitle,
+          artist: (artist || "").trim() || "Unknown Artist",
+          album: (album || "").trim() || "Unknown Album",
           cover: coverUrl,
         });
       },
       onError: (error) => {
-        console.warn("Error reading tags:", error.type, error.info);
+        if (resolved) return;
+        resolved = true;
+        clearTimeout(timer);
         resolve({
-          title: file.name.replace(/\.[^/.]+$/, ""),
+          title: fallbackTitle,
           artist: "Unknown Artist",
+          album: "Unknown Album",
           cover: null,
         });
       },
